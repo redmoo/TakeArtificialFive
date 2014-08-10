@@ -13,12 +13,18 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-           maingui.cpp \
            core.cpp \
-    midiengine.cpp
+    entity.cpp \
+    genes/gene.cpp \
+    main_gui.cpp \
+    midi_engine.cpp
 
-HEADERS  += maingui.h \
+HEADERS  += \
             core.h \
-    midiengine.h
+    entity.h \
+    genes/gene.h \
+    midi_engine.h \
+    main_gui.h \
+    genes/gene_parameter.h
 
 FORMS    += maingui.ui
