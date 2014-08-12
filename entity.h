@@ -1,6 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include "genes/genes.h"
+
 #include <QObject>
 #include <QVector>
 #include <QVector2D>
@@ -16,13 +18,20 @@ class Entity : public QObject
     Q_OBJECT
 
 public:
-    explicit Entity(QObject *parent = 0);
+    explicit Entity(int instr, int pat, QVector2D pos, QObject *parent = 0);
+
+    int getInstrument() { return instrument; }
+    int getPatch() { return patch; }
+    QVector2D getPosition() { return position; }
+
+    void addGene(Gene gene); // a je to pametn al enostavn dam da je friend class pa basta
 
 private:
     int status;
     int beat_counter;
 
     int instrument;
+    int patch;
     QVector<int> track;
 
     int current_tone;
@@ -33,6 +42,7 @@ private:
     double score;
 
     // gene list
+    QVector<Gene> genes;
 
 };
 
