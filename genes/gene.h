@@ -3,20 +3,17 @@
 
 #include "gene_parameter.h"
 
-#include <QObject>
-
-class Gene : public QObject
+class Gene // a rabm da je to qobject? pomoje ne...?
 {
-    Q_OBJECT
 
 public:
-    explicit Gene(QObject *parent = 0);
+    explicit Gene();
 
     // todo: iz entitet znotraj radija doloci ali se sprozi in kaksen ton se zaigra
     // a ma entiteta metodo in prek radija gena genu posreduje samo tiste znotraj?
-    void mutateParameters(double mutation_rate);
+    void mutateParameters(double mutation_rate); //nemorm dat virtual k pol ne pozre vektor
 
-private:
+protected:
     GeneParameter priority;
     GeneParameter perception_radius;
 

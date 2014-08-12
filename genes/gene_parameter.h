@@ -1,6 +1,8 @@
 #ifndef GENE_PARAMETER_H
 #define GENE_PARAMETER_H
 
+#include "../random_generator.h"
+
 class GeneParameter
 {
 
@@ -8,17 +10,23 @@ public:
     GeneParameter()
     {}
 
-    GeneParameter(int p_min, int p_max)
+    /*GeneParameter(int p_min, int p_max) // to pol nemorm ponucat al kako?
         : min(p_min)
         , max(p_max)
     {
+        mutate();
+    }*/ // ZAKVA TO NE POZRE????
+
+    void initialize(int p_min, int p_max)
+    {
+        min = p_min;
+        max = p_max;
         mutate();
     }
 
     void mutate()
     {
-        // boost random
-        value = 0;
+        value = RandomGenerator::get()->random(min, max);
     }
 
 private:
