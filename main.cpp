@@ -1,5 +1,4 @@
 #include "main_gui.h"
-//#include "core.h"
 
 #include <QApplication>
 

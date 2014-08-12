@@ -11,13 +11,17 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = TakeArtificialFive_v1
 TEMPLATE = app
 
+INCLUDEPATH += C:/Libraries/boost_1_56_0
+
+LIBS += -L/C:/Libraries/boost_1_56_0/libs
 
 SOURCES += main.cpp\
            core.cpp \
     entity.cpp \
     genes/gene.cpp \
     main_gui.cpp \
-    midi_engine.cpp
+    midi_engine.cpp \
+    genes/genes.cpp
 
 HEADERS  += \
             core.h \
@@ -25,6 +29,8 @@ HEADERS  += \
     genes/gene.h \
     midi_engine.h \
     main_gui.h \
-    genes/gene_parameter.h
+    genes/gene_parameter.h \
+    genes/genes.h \
+    random_generator.h
 
 FORMS    += maingui.ui
