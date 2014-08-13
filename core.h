@@ -23,10 +23,13 @@ public:
 private:    
     void processNextStep();
 
-    void initializeGenePool();
+    Gene* initializeRandomGene();
     void assignGenes(int amount, Entity *ent);
     QVector2D generateInitialPosition();
-    bool entityPresent(int row, int column);
+
+    QVector<Entity *> getEntityNeighbours(Entity *parent, int radius);
+    bool inRadius(QVector2D center, QVector2D neighbour, int radius);
+    int entityPresent(int row, int column);
 
     void timerEvent(QTimerEvent *);
 
@@ -38,10 +41,10 @@ private:
     int number_of_genes;
     int number_of_generations;
     int steps_per_generation;
+    int step_counter;
     int speed_ms;
 
-    QVector<Gene> gene_pool;
-    QVector<Entity*> entities;
+    QVector<Entity *> entities;
 
     static const int instruments[5];
 
