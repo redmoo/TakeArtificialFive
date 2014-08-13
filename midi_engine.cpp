@@ -62,3 +62,48 @@ void MidiEngine::stopNote(int note, int patch)
        qDebug() << "Warning: MIDI Output is not open.\n";
     }
 }
+
+void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed) // kok generacij pa ker seed je pa kok entitet
+{ // zgleda kokr da odseka zadno noto.. cudn
+    MIDIfile file;
+    file.AddLoopStart();
+
+    for(int i = 0; i < entities.size(); i++) {
+        file[0].Patch(entities.at(i)->getPatch(), entities.at(i)->getInstrument());
+    }
+
+    int track_length = entities.at(0)->getTrack().length();
+    QVector<int> keys_on(entities.size(), -1);
+
+    for (int loops = 0; loops < 1; loops++) {
+
+        for (int beat = 0; beat < track_length; beat++) {
+
+            for (int channel = 0; channel < entities.size(); channel++) {
+
+                int note = entities.at(channel)->getTrack().at(beat);
+                int vol = 100; // TODO: RECORD DYNAMICS!
+
+                if (note == midi_state::SUSTAIN) continue;
+
+                file[0].KeyOff(channel, keys_on[channel], 0x20);
+                keys_on[channel] = -1;
+
+                if (note == midi_state::PAUSE) continue;
+
+                file[0].KeyOn(channel, keys_on[channel] = note, vol);
+
+            }
+            file[0].AddDelay(speed);
+
+        }
+        if(loops == 0) file.AddLoopEnd();
+    }
+    file.Finish();
+
+    QString file_name = QString("seed(%1)_generations(%2)_entities(%3).mid").arg(seed).arg(1).arg(entities.size());
+    FILE* fp = std::fopen(file_name.toUtf8().constData(), "wb");
+    std::fwrite(&file.at(0), 1, file.size(), fp);
+    std::fclose(fp);
+
+}
