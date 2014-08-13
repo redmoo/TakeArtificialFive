@@ -9,7 +9,16 @@ class LonelyGene : public Gene
 public:
     explicit LonelyGene();
 
-    void mutateParameters();
+    bool trigger(QVector<Entity*> neighbours);
+    QVector3D generateTone(QVector<Entity*> neighbours);
+    QVector2D generateMovementDelta();
+
+    void mutateParameters(double mutation_rate);
+
+private:
+    int default_tone;
+    int duration;
+    QVector2D movement_delta;
 
 };
 
@@ -19,7 +28,11 @@ class SeekingGene : public Gene
 public:
     explicit SeekingGene();
 
-    void mutateParameters();
+    bool trigger(QVector<Entity*> neighbours);
+    QVector3D generateTone(QVector<Entity*> neighbours);
+    QVector2D generateMovementDelta();
+
+    void mutateParameters(double mutation_rate);
 };
 
 #endif // GENES_H

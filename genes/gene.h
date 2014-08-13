@@ -2,8 +2,13 @@
 #define GENE_H
 
 #include "gene_parameter.h"
+#include "../entity.h"
 
-class Gene // a rabm da je to qobject? pomoje ne...?
+#include <QVector2D>
+
+class Entity;
+
+class Gene
 {
 
 public:
@@ -11,7 +16,14 @@ public:
 
     // todo: iz entitet znotraj radija doloci ali se sprozi in kaksen ton se zaigra
     // a ma entiteta metodo in prek radija gena genu posreduje samo tiste znotraj?
-    void mutateParameters(double mutation_rate); //nemorm dat virtual k pol ne pozre vektor
+    virtual bool trigger(QVector<Entity*> neighbours) = 0;
+    virtual QVector3D generateTone(QVector<Entity*> neighbours) = 0; // QVector3D(tone, loudness, duration)
+    virtual QVector2D generateMovementDelta() = 0; // kasnej bo glede na sosede & sebe
+
+    virtual void mutateParameters(double mutation_rate) = 0;
+
+    int getPriority() const;
+    int getPerceptionRadius() const;
 
 protected:
     GeneParameter priority;

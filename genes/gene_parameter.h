@@ -29,6 +29,8 @@ public:
         value = RandomGenerator::get()->random(min, max);
     }
 
+    int getValue() const { return value; }
+
 private:
     int value;
     int min;
