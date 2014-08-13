@@ -9,7 +9,7 @@ MainGUI::MainGUI(Core *app_core, QWidget *parent)
     ui->setupUi(this);
     setWindowTitle("Take Artificial Five");
 
-    core->initialize(10, 10, 2, 2, 10, 10, 160);
+    core->initialize(20, 20, 4, 2, 10, 321, 160);
 }
 
 MainGUI::~MainGUI()
