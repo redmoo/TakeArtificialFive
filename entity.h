@@ -1,48 +1,52 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include "genes/genes.h"
+#include "genes/gene.h" // genes.h?
 
 #include <QObject>
 #include <QVector>
 #include <QVector2D>
+#include <QVector3D>
 
-namespace entity_status
+namespace entity_state
 {
     const int IDLE = 1000;
     const int PLAYING = 1001;
 }
 
+class Gene;
+
 class Entity : public QObject
 {
     Q_OBJECT
 
+    friend class Core;
+
 public:
     explicit Entity(int instr, int pat, QVector2D pos, QObject *parent = 0);
 
-    int getInstrument() { return instrument; }
-    int getPatch() { return patch; }
-    QVector2D getPosition() { return position; }
-
-    void addGene(Gene gene); // a je to pametn al enostavn dam da je friend class pa basta
+    int getInstrument();
+    int getPatch();
+    QVector<int> getTrack();
 
 private:
-    int status;
-    int beat_counter;
+    int state;
 
     int instrument;
     int patch;
     QVector<int> track;
 
     int current_tone;
+    int loudness;
+    int beat_counter;
     //int last_played_tone; // to lahko dobimo iz metode + track record
 
     QVector2D position;
-    QVector2D position_queue;
+    QVector2D position_delta;
     double score;
 
     // gene list
-    QVector<Gene> genes;
+    QVector<Gene *> genes;
 
 };
 

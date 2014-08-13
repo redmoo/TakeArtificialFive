@@ -1,7 +1,7 @@
 #include "entity.h"
 
 Entity::Entity(int instr, int pat, QVector2D pos, QObject *parent)
-    : status(entity_status::IDLE)
+    : state(entity_state::IDLE)
     , beat_counter(0)
     , instrument(instr)
     , patch(pat)
@@ -10,7 +10,17 @@ Entity::Entity(int instr, int pat, QVector2D pos, QObject *parent)
 {
 }
 
-void Entity::addGene(Gene gene)
+int Entity::getInstrument()
 {
-    genes.append(gene);
+    return instrument;
+}
+
+int Entity::getPatch()
+{
+    return patch;
+}
+
+QVector<int> Entity::getTrack()
+{
+    return track;
 }
