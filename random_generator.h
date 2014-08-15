@@ -29,10 +29,12 @@ public:
 
 private:
     RandomGenerator() {
-        // 1407943248 interesting seed: 4 entitete vsaka ma 2 lonely gena  1407943591 1407943337 1407943324 1407943262 (extra cool 1407946622)
-        seed = std::time(0);
+        // 1407943248 interesting seed: 4 entitete vsaka ma 2 lonely gena  1407943591 1407943337 1407943324 1407943262 (extra cool 1407946622) 1407972922
+        // 2.Best: 1407976810
+        // BEST!!! 1408048805
+        seed = 1408048805;std::time(0);//1407976810
         qDebug() << "Seed: " << seed;
-        rng.seed(1407946622);
+        rng.seed(seed);
     }
 
     // Dont forget to declare these two. You want to make sure they
