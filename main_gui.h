@@ -17,6 +17,10 @@ public:
     explicit MainGUI(Core *app_core, QWidget *parent = 0);
     ~MainGUI();
 
+private slots:
+    void on_startButton_clicked();
+    void on_pauseButton_toggled(bool checked);
+
 private:
     Ui::MainGUI *ui;
     Core *core;
