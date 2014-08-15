@@ -10,7 +10,8 @@
 const int Core::instruments[5] = { 0, 52, 0, 35, 81 }; // 0=piano, 52=choir aahs, 48=strings, 35=fretless bass, 74=pan flute
 
 Core::Core(QObject *parent)
-    : QObject(parent)
+    : state(simulation_state::IDLE)
+    , QObject(parent)
 {}
 
 void Core::initialize(int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed)
@@ -37,8 +38,24 @@ void Core::initialize(int w_height, int w_width, int nr_of_entities, int nr_of_g
     }
 
     step_counter = 0;
-    timer_id = startTimer(speed_ms);
+    resumeSimulation();
 
+}
+
+void Core::pauseSimulation()
+{
+    if (state == simulation_state::RUNNING) {
+        state = simulation_state::PAUSED;
+        killTimer(timer_id);
+    }
+}
+
+void Core::resumeSimulation()
+{
+    if (state != simulation_state::RUNNING) {
+        state = simulation_state::RUNNING;
+        timer_id = startTimer(speed_ms);
+    }
 }
 
 void Core::processNextStep()
@@ -82,7 +99,12 @@ void Core::processNextStep()
         if (entity->state == entity_state::IDLE && entity->beat_counter > 0) {
             entity->track.append(entity->current_tone);
 
-            midi_engine.playNote(entity->current_tone, entity->patch, /*entity->current_tone == 68 || entity->current_tone == 54 ? 60 :*/ entity->loudness); // nared da lahko igrajo NIC za x dob
+            // TEMP!
+            //int loudness = entity->loudness;
+            //if (entity->current_tone == 68) loudness = 40;
+            //else if (entity->current_tone == 54) loudness = 80;
+
+            midi_engine.playNote(entity->current_tone, entity->patch, entity->loudness); // nared da lahko igrajo NIC za x dob
             entity->state = entity_state::PLAYING;
             entity->beat_counter--;
 
@@ -106,19 +128,24 @@ void Core::processNextStep()
 
 void Core::exportWorldPositions()
 {
+    QVector<int> world;
+
     qDebug() << "Step: " << step_counter;
     for (int i = 0; i < world_height; i++) {
         for (int j = 0; j < world_width; j++) {
             int index = entityPresent(i, j);
             if (index != -1) {
-                entities.at(index)->state == entity_state::PLAYING ? std::cout << " " << entities.at(index)->current_tone : std::cout << " X ";
+                entities.at(index)->state == entity_state::PLAYING
+                        ? world.append(entities.at(index)->current_tone)
+                        : world.append(-1);
             }
-            else
-                std::cout << " - ";
-        }
-        std::cout << std::endl;
+            else {
+                world.append(-2);
+            }
+        }   
     }
-    std::cout << std::endl;
+
+    emit worldChanged(world, world_height, world_width);
 }
 
 Gene* Core::initializeRandomGene()

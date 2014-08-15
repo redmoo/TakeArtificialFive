@@ -8,6 +8,13 @@
 #include <QObject>
 #include <QTimer>
 
+namespace simulation_state
+{
+    const int IDLE = 7000;
+    const int RUNNING = 7001;
+    const int PAUSED = 7002;
+}
+
 class Core : public QObject
 {
     Q_OBJECT
@@ -17,8 +24,12 @@ public:
 
 public:
     void initialize(int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed);
-
+    void pauseSimulation();
+    void resumeSimulation();
     void exportWorldPositions(); // vraca 2d tabelo
+
+signals:
+    void worldChanged(QVector<int> world, int height, int width);
 
 private:    
     void processNextStep();
@@ -34,6 +45,8 @@ private:
     void timerEvent(QTimerEvent *);
 
 private:
+    int state;
+
     int world_height;
     int world_width;
 
