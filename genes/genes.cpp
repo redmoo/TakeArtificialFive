@@ -11,7 +11,7 @@ LonelyGene::LonelyGene()
 
 bool LonelyGene::trigger(QVector<Entity *> neighbours)
 {
-    return neighbours.size() == 0;
+    return neighbours.size() == 0; // dej da je nek counter k se reseta pac ce faila enkrat pol za to rundo odigra nic za x cajta... naslednic gre naprej in cez Y spet 0
 }
 
 QVector3D LonelyGene::generateTone(QVector<Entity *> neighbours)

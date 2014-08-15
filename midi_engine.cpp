@@ -84,6 +84,11 @@ void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed) //
                 int note = entities.at(channel)->getTrack().at(beat);
                 int vol = 100; // TODO: RECORD DYNAMICS!
 
+                //temp
+                //if (channel == 1) vol = 40;
+                //if (channel == 3) vol = 80;
+
+
                 if (note == midi_state::SUSTAIN) continue;
 
                 file[0].KeyOff(channel, keys_on[channel], 0x20);

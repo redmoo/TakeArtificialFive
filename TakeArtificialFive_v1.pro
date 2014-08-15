@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     genes/gene.cpp \
     main_gui.cpp \
     midi_engine.cpp \
-    genes/genes.cpp
+    genes/genes.cpp \
+    gui/world_frame.cpp
 
 HEADERS  += \
             core.h \
@@ -31,6 +32,7 @@ HEADERS  += \
     main_gui.h \
     genes/gene_parameter.h \
     genes/genes.h \
-    random_generator.h
+    random_generator.h \
+    gui/world_frame.h
 
 FORMS    += maingui.ui
