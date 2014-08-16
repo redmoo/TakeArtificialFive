@@ -23,16 +23,24 @@ public:
     explicit Core(QObject *parent = 0);
 
 public:
-    void initialize(int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed);
+    void initialize(time_t seed, int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed);
     void pauseSimulation();
     void resumeSimulation();
     void exportWorldPositions(); // vraca 2d tabelo
 
+    void setCurrentSpeed(int speed);
+
 signals:
     void worldChanged(QVector<int> world, int height, int width);
+    void simulationCountChanged(int generation, int step);
+    void seedChanged(time_t seed);
 
 private:    
     void processNextStep();
+    void evaluateEntities();
+    void mutateEntities();
+    void resetEntities();
+    void assembleCurrentTrack();
 
     Gene* initializeRandomGene();
     void assignGenes(int amount, Entity *ent);
@@ -53,13 +61,16 @@ private:
     int number_of_entities;
     int number_of_genes;
     int number_of_generations;
+    int generation_counter;
     int steps_per_generation;
     int step_counter;
     int speed_ms;
+    int current_speed;
 
     QVector<Entity *> entities;
+    QVector<QVector<int>> current_track;
 
-    static const int instruments[5];
+    static const int instruments[7];
 
     MidiEngine midi_engine;
     int timer_id;

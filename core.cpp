@@ -7,14 +7,14 @@
 #include <ctime>
 #include <algorithm>
 
-const int Core::instruments[5] = { 0, 52, 0, 35, 81 }; // 0=piano, 52=choir aahs, 48=strings, 35=fretless bass, 74=pan flute
+const int Core::instruments[7] = { 0, 52, 0, 35, 0, 27, 46}; // 0=piano, 52=choir aahs, 48=strings, 35=fretless bass, 74=pan flute
 
 Core::Core(QObject *parent)
     : state(simulation_state::IDLE)
     , QObject(parent)
 {}
 
-void Core::initialize(int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed)
+void Core::initialize(time_t seed, int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed)
 {
     world_height = w_height;
     world_width = w_width;
@@ -23,13 +23,17 @@ void Core::initialize(int w_height, int w_width, int nr_of_entities, int nr_of_g
     number_of_genes = nr_of_genes;
     number_of_generations = generations;
     steps_per_generation = steps;
-    speed_ms = speed;
+    speed_ms = current_speed = speed;
 
     // SETUP EVERYTHING ...
+    if (seed != 0) {
+        RandomGenerator::get()->setSeed(seed);
+    }
+    emit seedChanged(RandomGenerator::get()->getSeed());
 
     for (int i = 0; i < number_of_entities; i++) {
 
-        Entity *ent = new Entity(instruments[i % 5], i >= 10 ? i+1 : i, generateInitialPosition());
+        Entity *ent = new Entity(instruments[RandomGenerator::get()->random(0, 6)], i >= 10 ? i+1 : i, generateInitialPosition());
         assignGenes(number_of_genes, ent);
         entities.append(ent);
 
@@ -37,6 +41,7 @@ void Core::initialize(int w_height, int w_width, int nr_of_entities, int nr_of_g
 
     }
 
+    generation_counter = 1; // updejti .. a gremo od 0 al od 1...
     step_counter = 0;
     resumeSimulation();
 
@@ -54,7 +59,7 @@ void Core::resumeSimulation()
 {
     if (state != simulation_state::RUNNING) {
         state = simulation_state::RUNNING;
-        timer_id = startTimer(speed_ms);
+        timer_id = startTimer(current_speed);
     }
 }
 
@@ -126,11 +131,56 @@ void Core::processNextStep()
     }
 }
 
+void Core::evaluateEntities()
+{
+    for (int e = 0; e < entities.size(); e++) {
+        Entity *entity = entities.at(e);
+
+        for (int b = 0; b < steps_per_generation; b++) {
+
+        }
+    }
+}
+
+void Core::mutateEntities()
+{
+    double mutation_rate = 0.5; // bodo mel razlicne..
+
+    for (int e = 0; e < entities.size(); e++) {
+        Entity *entity = entities.at(e);
+
+        for (int g = 0; g < entity->genes.size(); g++) {
+            entity->genes.at(g)->mutateParameters(mutation_rate);
+        }
+    }
+}
+
+void Core::resetEntities()
+{
+    for (int e = 0; e < entities.size(); e++) {
+        Entity *entity = entities.at(e);
+
+        midi_engine.stopNote(entity->current_tone, entity->patch);
+
+        entity->track.clear();
+        entity->position = entity->initial_position;
+        entity->beat_counter = 0;
+        entity->state = entity_state::IDLE;
+    }
+}
+
+void Core::assembleCurrentTrack()
+{
+    current_track.clear();
+    for (int e = 0; e < entities.size(); e++) {
+        current_track.append(entities.at(e)->track);
+    }
+}
+
 void Core::exportWorldPositions()
 {
     QVector<int> world;
 
-    qDebug() << "Step: " << step_counter;
     for (int i = 0; i < world_height; i++) {
         for (int j = 0; j < world_width; j++) {
             int index = entityPresent(i, j);
@@ -146,12 +196,20 @@ void Core::exportWorldPositions()
     }
 
     emit worldChanged(world, world_height, world_width);
+    emit simulationCountChanged(generation_counter, step_counter);
+}
+
+void Core::setCurrentSpeed(int speed)
+{
+    current_speed = speed;
+    killTimer(timer_id);
+    timer_id = startTimer(current_speed);
 }
 
 Gene* Core::initializeRandomGene()
 {
     int gene_index = RandomGenerator::get()->random(0, 0); // manual update
-
+    // nared checkboxe za kateri geni so v poolu
     switch (gene_index) {
         case 0: return new LonelyGene();
         //case 1: return SeekingGene();
@@ -216,9 +274,20 @@ void Core::timerEvent(QTimerEvent *)
     processNextStep();
     exportWorldPositions();
 
-    if (step_counter == steps_per_generation) {
+    if (generation_counter < number_of_generations && step_counter == steps_per_generation) {
+
+        assembleCurrentTrack();
+        evaluateEntities(); // treba zdruzit komad v en 2d array za evalvacijo komada
+        mutateEntities();
+        resetEntities();
+        step_counter = 0;
+        generation_counter++;
+
+    }
+    else if (generation_counter == number_of_generations && step_counter == steps_per_generation) {
         killTimer(timer_id);
-        midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed());
+        midi_engine.close();
+        midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed()); // nared metodo k vrne ime fajla in passas ime
     }
 
 }
