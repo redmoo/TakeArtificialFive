@@ -21,10 +21,10 @@ void WorldFrame::drawWorld(QVector<int> world, int height, int width)
 void WorldFrame::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
-    //QRect world_rect = contentsRect();
-    int cell_size = 30;
+    QRect world_rect = contentsRect();
 
     if (world_info.size() > 0) {
+        double cell_size = (double)world_rect.height() / world_height;
 
         for (int h = 0; h < world_height; h++) {
             for (int w = 0; w < world_width; w++) {
@@ -33,10 +33,10 @@ void WorldFrame::paintEvent(QPaintEvent *)
 
                 if (value == world_state::EMPTY) {
 
-                    int spread = cell_size/4;
-                    int grass_height = cell_size/5;
+                    double spread = cell_size/4;
+                    double grass_height = cell_size/5;
 
-                    QPoint bottom_center(w * cell_size + cell_size/2, (h + 1) * cell_size - 1);
+                    QPoint bottom_center(w * cell_size + cell_size/2, (h + 1) * cell_size);
                     QPoint top_center = bottom_center - QPoint(0, grass_height);
 
                     painter.setPen(QColor(Qt::green));
@@ -49,13 +49,13 @@ void WorldFrame::paintEvent(QPaintEvent *)
                 else if (value != world_state::SILENT) {
 
                     painter.setBrush(QBrush(QColor(135, 206, 235, 200)));
-                    painter.drawRect(w * cell_size, h * cell_size, cell_size-1, cell_size-1);
-                    painter.drawText(w * cell_size, h * cell_size, cell_size-1, cell_size-1, Qt::AlignCenter, QString::number(value));
+                    painter.drawRect(w * cell_size, h * cell_size, cell_size, cell_size);
+                    painter.drawText(w * cell_size, h * cell_size, cell_size, cell_size, Qt::AlignCenter, QString::number(value));
 
                 } else {
 
                     painter.setBrush(QBrush(QColor(Qt::red)));
-                    painter.drawRect(w * cell_size, h * cell_size, cell_size-1, cell_size-1);
+                    painter.drawRect(w * cell_size, h * cell_size, cell_size, cell_size);
 
                 }
 
