@@ -16,9 +16,9 @@ public:
     void mutateParameters(double mutation_rate);
 
 private:
-    int default_tone;
-    int duration;
-    QVector2D movement_delta;
+    GeneParameter default_tone;
+    GeneParameter duration;
+    GeneParameter movement_delta[2];
 
 };
 

@@ -3,10 +3,12 @@
 /** LONELY GENE **/
 
 LonelyGene::LonelyGene()
-    : default_tone(RandomGenerator::get()->random(48, 72))
-    , duration(RandomGenerator::get()->random(1, 8))
 {
-    movement_delta = QVector2D(RandomGenerator::get()->random(-1, 1), RandomGenerator::get()->random(-1, 1));
+    default_tone.initialize(48, 72); // mors dat sanso da ne zaigra nic, torej toni+1 -> random
+    duration.initialize(1, 8);
+    movement_delta[1].initialize(-1, 1);
+    movement_delta[0].initialize(-1, 1);
+
 }
 
 bool LonelyGene::trigger(QVector<Entity *> neighbours)
@@ -16,18 +18,23 @@ bool LonelyGene::trigger(QVector<Entity *> neighbours)
 
 QVector3D LonelyGene::generateTone(QVector<Entity *> neighbours)
 {
-    return QVector3D(default_tone, 100, duration);
+    return QVector3D(default_tone.getValue(), 100, duration.getValue());
 }
 
 QVector2D LonelyGene::generateMovementDelta()
 {
-    return movement_delta;
+    return QVector2D(movement_delta[0].getValue(), movement_delta[1].getValue());
 }
 
 void LonelyGene::mutateParameters(double mutation_rate)
 {
-    default_tone = RandomGenerator::get()->random(48, 72);
-    duration = RandomGenerator::get()->random(1, 4);
+    mutateBase(mutation_rate);
+    if (RandomGenerator::get()->random01() <= mutation_rate) default_tone.mutate();
+    if (RandomGenerator::get()->random01() <= mutation_rate) duration.mutate();
+    if (RandomGenerator::get()->random01() <= mutation_rate) {
+        movement_delta[0].mutate();
+        movement_delta[1].mutate();
+    }
 }
 
 /** SEEKING GENE **/

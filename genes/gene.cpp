@@ -16,3 +16,9 @@ int Gene::getPerceptionRadius() const
 {
     return perception_radius.getValue();
 }
+
+void Gene::mutateBase(double mutation_rate)
+{
+    if (RandomGenerator::get()->random01() <= mutation_rate) priority.mutate();
+    if (RandomGenerator::get()->random01() <= mutation_rate) perception_radius.mutate();
+}

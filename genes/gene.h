@@ -26,6 +26,9 @@ public:
     int getPerceptionRadius() const;
 
 protected:
+    void mutateBase(double mutation_rate);
+
+protected:
     GeneParameter priority;
     GeneParameter perception_radius;
 
