@@ -201,6 +201,8 @@ public:
 
     void exportTrack(QVector<Entity *> entities, int speed, int seed);
 
+    int close();
+
 private:
     int initialize();
 

@@ -22,9 +22,14 @@ int MidiEngine::initialize()
     return 0;
 }
 
+int MidiEngine::close()
+{
+    return event_flag = midiOutClose(device);
+}
+
 MidiEngine::~MidiEngine()
 {
-    event_flag = midiOutClose(device);
+    close();
 }
 
 void MidiEngine::setPatch(int patch, int instrument)
