@@ -22,6 +22,17 @@ public:
         return range(rng);
     }
 
+    double random01() // (0,1]
+    {
+        return (double)random(1, 100) / 100;
+    }
+
+    void setSeed(time_t s)
+    {
+        rng.seed(seed = s);
+        qDebug() << "Seed: " << seed;
+    }
+
     time_t getSeed()
     {
         return seed;
@@ -32,9 +43,8 @@ private:
         // 1407943248 interesting seed: 4 entitete vsaka ma 2 lonely gena  1407943591 1407943337 1407943324 1407943262 (extra cool 1407946622) 1407972922
         // 2.Best: 1407976810
         // BEST!!! 1408048805
-        seed = 1408048805;std::time(0);//1407976810
-        qDebug() << "Seed: " << seed;
-        rng.seed(seed);
+        //1407976810 0, 52, 0, 35, 0 i%5 -> da dobis proper sound
+        setSeed(std::time(0));
     }
 
     // Dont forget to declare these two. You want to make sure they
