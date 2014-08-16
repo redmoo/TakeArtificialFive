@@ -38,9 +38,10 @@ private:
 
     int current_tone;
     int loudness;
-    int beat_counter;
+    int beat_counter; // a moram pr resetu positionov tut to resetat?
     //int last_played_tone; // to lahko dobimo iz metode + track record
 
+    QVector2D initial_position;
     QVector2D position;
     QVector2D position_delta;
     double score;

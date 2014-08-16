@@ -8,6 +8,7 @@ Entity::Entity(int instr, int pat, QVector2D pos, QObject *parent)
     , position(pos)
     , QObject(parent)
 {
+    initial_position = position;
 }
 
 int Entity::getInstrument()
