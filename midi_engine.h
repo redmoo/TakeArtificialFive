@@ -199,7 +199,7 @@ public:
     void playNote(int note, int patch, int velocity = 100);
     void stopNote(int note, int patch);
 
-    void exportTrack(QVector<Entity *> entities, int speed, int seed);
+    void exportTrack(QVector<Entity *> entities, int speed, int seed, int generation, int height, int width, int steps);
 
     int close();
 

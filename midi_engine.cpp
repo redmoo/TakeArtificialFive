@@ -1,5 +1,6 @@
 #include "midi_engine.h"
 
+#include <QDir>
 #include <QDebug>
 
 MidiEngine::MidiEngine(QObject *parent) :
@@ -68,7 +69,7 @@ void MidiEngine::stopNote(int note, int patch)
     }
 }
 
-void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed) // kok generacij pa ker seed je pa kok entitet
+void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed, int generation, int height, int width, int steps) // kok generacij pa ker seed je pa kok entitet
 { // zgleda kokr da odseka zadno noto.. cudn
     MIDIfile file;
     file.AddLoopStart();
@@ -89,11 +90,6 @@ void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed) //
                 int note = entities.at(channel)->getTrack().at(beat);
                 int vol = 100; // TODO: RECORD DYNAMICS!
 
-                //temp
-                //if (channel == 1) vol = 40;
-                //if (channel == 3) vol = 80;
-
-
                 if (note == midi_state::SUSTAIN) continue;
 
                 file[0].KeyOff(channel, keys_on[channel], 0x20);
@@ -111,7 +107,19 @@ void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed) //
     }
     file.Finish();
 
-    QString file_name = QString("seed(%1)_generations(%2)_entities(%3).mid").arg(seed).arg(1).arg(entities.size());
+    QDir destination(QString::number(seed));
+    if (!destination.exists()) destination.mkpath(".");
+
+    QString file_name = QString("%8/seed[%1]_gnr[%2]_h[%3]_w[%4]_e[%5]_g[%6]_st[%7].mid")
+                .arg(seed)
+                .arg(generation)
+                .arg(height)
+                .arg(width)
+                .arg(entities.size())
+                .arg(entities.at(0)->getNumberOfGenes())
+                .arg(steps)
+                .arg(destination.dirName());
+
     FILE* fp = std::fopen(file_name.toUtf8().constData(), "wb");
     std::fwrite(&file.at(0), 1, file.size(), fp);
     std::fclose(fp);
