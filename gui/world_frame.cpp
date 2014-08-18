@@ -1,5 +1,7 @@
 #include "world_frame.h"
 
+#include "../midi_engine.h"
+
 #include <QPainter>
 #include <QDebug>
 
@@ -24,7 +26,9 @@ void WorldFrame::paintEvent(QPaintEvent *)
     QRect world_rect = contentsRect();
 
     if (world_info.size() > 0) {
-        double cell_size = (double)world_rect.height() / world_height;
+        double cell_size = world_height > world_width ?
+                    (double)(world_rect.height()) / world_height :
+                    (double)(world_rect.width()) / world_width;
 
         for (int h = 0; h < world_height; h++) {
             for (int w = 0; w < world_width; w++) {
@@ -48,9 +52,11 @@ void WorldFrame::paintEvent(QPaintEvent *)
                 }
                 else if (value != world_state::SILENT) {
 
-                    painter.setBrush(QBrush(QColor(135, 206, 235, 200)));
+                    if (value != midi_state::PAUSE) painter.setBrush(QBrush(QColor(135, 206, 235, 200)));
+                    else painter.setBrush(QBrush(QColor(255, 204, 0, 200)));
+
                     painter.drawRect(w * cell_size, h * cell_size, cell_size, cell_size);
-                    painter.drawText(w * cell_size, h * cell_size, cell_size, cell_size, Qt::AlignCenter, QString::number(value));
+                    if (value != midi_state::PAUSE) painter.drawText(w * cell_size, h * cell_size, cell_size, cell_size, Qt::AlignCenter, QString::number(value));
 
                 } else {
 
