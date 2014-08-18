@@ -28,6 +28,9 @@ public:
     int getInstrument();
     int getPatch();
     QVector<int> getTrack();
+    int getNumberOfGenes();
+
+    int getCurrentTone();
 
 private:
     int state;
@@ -45,6 +48,9 @@ private:
     QVector2D position;
     QVector2D position_delta;
     double score;
+    double consonant_score;
+    double activity_score;
+    double mutation_rate; // nared se za reproduction
 
     // gene list
     QVector<Gene *> genes;

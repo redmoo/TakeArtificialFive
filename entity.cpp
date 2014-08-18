@@ -25,3 +25,13 @@ QVector<int> Entity::getTrack()
 {
     return track;
 }
+
+int Entity::getNumberOfGenes()
+{
+    return genes.size();
+}
+
+int Entity::getCurrentTone()
+{
+    return current_tone;
+}
