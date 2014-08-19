@@ -68,10 +68,13 @@ void SeekingGene::mutateParameters(double mutation_rate)
 
 ChordGene::ChordGene()
 {
-    interval.initialize(0, 12); // mors dat sanso da ne zaigra nic, torej toni+1 -> random
+    interval.initialize(0, 12); // mors dat sanso da ne zaigra nic, torej toni+1 -> random nared da 0 je 0 kr zakaj bi zaigral isti ton?
     duration.initialize(1, 8);
     movement_delta[1].initialize(-1, 1);
     movement_delta[0].initialize(-1, 1);
+
+    //signs.clear();
+    //sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1;
 }
 
 bool ChordGene::trigger(QVector<Entity *> neighbours)
@@ -81,8 +84,20 @@ bool ChordGene::trigger(QVector<Entity *> neighbours)
 
 QVector3D ChordGene::generateTone(QVector<Entity *> neighbours)
 {
-    int sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1;
-    int tone = neighbours.at(0)->getCurrentTone() != midi_state::PAUSE ? neighbours.at(0)->getCurrentTone() + (sign * interval.getValue()) : midi_state::PAUSE; // a sm za 1 dobo?
+    // test, da obraca sign k pride cez mejo, da obraca na X dob, al pa da odigra oktavo visji/nizji
+    int tone;
+    int sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1; // KAKO TO REST!
+
+    if (neighbours.at(0)->getCurrentTone() != midi_state::PAUSE) {
+        tone = neighbours.at(0)->getCurrentTone() + (sign * interval.getValue());
+        if (tone < 0) tone += 12;
+        else if (tone > 127) tone -= 12;
+    }
+    else {
+        tone = midi_state::PAUSE;
+    }
+    //sign = -sign;
+
     return QVector3D(tone, 100, duration.getValue());
 }
 
@@ -100,6 +115,9 @@ void ChordGene::mutateParameters(double mutation_rate)
         movement_delta[0].mutate();
         movement_delta[1].mutate();
     }
+
+    //if (RandomGenerator::get()->random01() <= mutation_rate)
+        //sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1;
 }
 
 

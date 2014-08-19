@@ -50,6 +50,8 @@ public:
     void mutateParameters(double mutation_rate);
 
 private:
+    QVector<int> signs;
+
     GeneParameter interval; // PREVERI KAJ MAJO ENTITETE ZA DEFAULT TON! razn ce ta prever a ni un se nc zaigral
     GeneParameter duration;
     GeneParameter movement_delta[2];
