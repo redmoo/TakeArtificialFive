@@ -48,7 +48,7 @@ private:
     void stopCurrentTones();
     void assembleCurrentTrack();
 
-    Gene* initializeRandomGene();
+    Gene* initializeRandomGene(int index = -1);
     void assignGenes(int amount, Entity *ent);
     QVector2D generateInitialPosition();
 

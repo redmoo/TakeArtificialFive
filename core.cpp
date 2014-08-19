@@ -169,7 +169,7 @@ void Core::evaluateEntities()
                 }
 
                 int interval = std::abs(entity_tone - pair_tone);
-                if (consonant_intervals.contains(interval)) {
+                if (consonant_intervals.contains(interval % 12)) { // a ni skor bols ce je sm 12 oz nastavs radius!
                     consonance_count[e]++;
                     consonance_count[p]++;
                 }
@@ -184,7 +184,7 @@ void Core::evaluateEntities()
 
     for (int e = 0; e < entities.size(); e++) {
 
-        entities.at(e)->consonant_score = (double)consonance_count.at(e) / (double)intervals_compared.at(e);
+        entities.at(e)->consonant_score = intervals_compared.at(e) > 0 ? (double)consonance_count.at(e) / (double)intervals_compared.at(e) : 0;
         entities.at(e)->activity_score = (double)(steps_per_generation - quiet_count.at(e)) / (double)steps_per_generation;
 
         entities.at(e)->score =
@@ -321,9 +321,11 @@ void Core::toggleGenerationExport(bool export_current)
     export_current_generation = export_current;
 }
 
-Gene* Core::initializeRandomGene()
+Gene* Core::initializeRandomGene(int index)
 {
-    int gene_index = RandomGenerator::get()->random(0, 2); // manual update
+    int gene_index = index == -1 ? RandomGenerator::get()->random(0, 2) : index; // manual update
+    //qDebug() << gene_index;
+
     // nared checkboxe za kateri geni so v poolu
     switch (gene_index) {
         case 0: return new LonelyGene();
