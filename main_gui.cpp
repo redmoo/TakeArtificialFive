@@ -24,14 +24,15 @@ MainGUI::~MainGUI()
 
 void MainGUI::on_startButton_clicked()
 {
-    /* seed, height, width, entities, genes, generations, steps, speed */
+    /* seed, height, width, entities, genes, gene_string, generations, steps, speed */
     core->initialize(ui->seedSpinBox->value(),
                      ui->worldHeightSpinBox->value(),
                      ui->worldWidthSpinBox->value(),
                      ui->entitiesSpinBox->value(),
                      ui->genesSpinBox->value(),
+                     ui->geneEdit->text(),
                      ui->generationsSpinBox->value(),
-                     ui->stepsSpinBox->value()/*110 321*/,
+                     ui->stepsSpinBox->value(),
                      ui->speedSpinBox->value());
 
     core->updateFitnessCutoff(ui->fitnessSpinBox->value());
