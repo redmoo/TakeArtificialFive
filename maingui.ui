@@ -442,8 +442,8 @@ background-color: rgb(0, 0, 0);</string>
     </property>
     <property name="geometry">
      <rect>
-      <x>1021</x>
-      <y>300</y>
+      <x>1200</x>
+      <y>400</y>
       <width>51</width>
       <height>22</height>
      </rect>
@@ -468,7 +468,7 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>1020</x>
-      <y>350</y>
+      <y>450</y>
       <width>51</width>
       <height>22</height>
      </rect>
@@ -490,7 +490,7 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>910</x>
-      <y>280</y>
+      <y>380</y>
       <width>91</width>
       <height>16</height>
      </rect>
@@ -506,8 +506,8 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>910</x>
-      <y>300</y>
-      <width>101</width>
+      <y>400</y>
+      <width>281</width>
       <height>19</height>
      </rect>
     </property>
@@ -525,7 +525,7 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>910</x>
-      <y>330</y>
+      <y>430</y>
       <width>101</width>
       <height>16</height>
      </rect>
@@ -541,7 +541,7 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>910</x>
-      <y>350</y>
+      <y>450</y>
       <width>101</width>
       <height>19</height>
      </rect>
@@ -560,7 +560,7 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>910</x>
-      <y>380</y>
+      <y>480</y>
       <width>101</width>
       <height>16</height>
      </rect>
@@ -581,7 +581,7 @@ background-color: rgb(0, 0, 0);</string>
       <x>910</x>
       <y>20</y>
       <width>331</width>
-      <height>241</height>
+      <height>331</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -592,7 +592,7 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>910</x>
-      <y>400</y>
+      <y>500</y>
       <width>101</width>
       <height>19</height>
      </rect>
@@ -614,7 +614,7 @@ background-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>1020</x>
-      <y>400</y>
+      <y>500</y>
       <width>51</width>
       <height>22</height>
      </rect>
@@ -694,6 +694,114 @@ background-color: rgb(0, 0, 0);</string>
     </property>
     <property name="text">
      <string>Genes:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_15">
+    <property name="geometry">
+     <rect>
+      <x>1090</x>
+      <y>430</y>
+      <width>81</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>Disonance:</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="disonanceSlider">
+    <property name="geometry">
+     <rect>
+      <x>1090</x>
+      <y>450</y>
+      <width>101</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="disonanceSpinBox">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>1200</x>
+      <y>450</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="maximum">
+     <double>1.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
+    </property>
+   </widget>
+   <widget class="QSlider" name="inactivitySlider">
+    <property name="geometry">
+     <rect>
+      <x>1090</x>
+      <y>500</y>
+      <width>101</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="inactivitySpinBox">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>1200</x>
+      <y>500</y>
+      <width>51</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="maximum">
+     <double>1.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_16">
+    <property name="geometry">
+     <rect>
+      <x>1090</x>
+      <y>480</y>
+      <width>81</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>Inactivity:</string>
     </property>
    </widget>
   </widget>

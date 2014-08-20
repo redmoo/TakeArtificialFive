@@ -35,7 +35,8 @@ void MainGUI::on_startButton_clicked()
                      ui->speedSpinBox->value());
 
     core->updateFitnessCutoff(ui->fitnessSpinBox->value());
-    core->updateFitness(ui->consonanceSpinBox->value(), ui->activitySpinBox->value());
+    core->updateFitness(ui->consonanceSpinBox->value(), ui->disonanceSpinBox->value(),
+                        ui->activitySpinBox->value(), ui->inactivitySpinBox->value());
     core->toggleGenerationExport(ui->exportButton->isChecked());
 
     ui->worldHeightSpinBox->setEnabled(false);
@@ -97,37 +98,69 @@ void MainGUI::on_fitnessSlider_valueChanged(int value)
 }
 
 void MainGUI::on_consonanceSlider_valueChanged(int value)
+{   
+    double actual_value = (double)value / 100;
+    double others_total = ui->disonanceSpinBox->value() +
+                          ui->activitySpinBox->value() +
+                          ui->inactivitySpinBox->value();
+
+    if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total; // dej v eno metodo k vrne drug parametr
+
+    ui->consonanceSpinBox->setValue(actual_value);
+    ui->consonanceSlider->setValue(actual_value * 100);
+
+    updateFitnessGUI();
+}
+
+void MainGUI::on_disonanceSlider_valueChanged(int value)
 {
     double actual_value = (double)value / 100;
-    double activity = ui->activitySpinBox->value();
+    double others_total = ui->consonanceSpinBox->value() +
+                          ui->activitySpinBox->value() +
+                          ui->inactivitySpinBox->value();
 
-    if (actual_value + activity > 1.0) activity = 1.0 - actual_value; // dej v eno metodo k vrne drug parametr
-    updateFitnessGUI(actual_value, activity);
+    if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
+
+    ui->disonanceSpinBox->setValue(actual_value);
+    ui->disonanceSlider->setValue(actual_value * 100);
+
+    updateFitnessGUI();
 }
 
 void MainGUI::on_activitySlider_valueChanged(int value)
 {
     double actual_value = (double)value / 100;
-    double consonance = ui->consonanceSpinBox->value();
+    double others_total = ui->consonanceSpinBox->value() +
+                          ui->disonanceSpinBox->value() +
+                          ui->inactivitySpinBox->value();
 
-    if (actual_value + consonance > 1.0) consonance = 1.0 - actual_value;
-    updateFitnessGUI(consonance, actual_value);
+    if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
+
+    ui->activitySpinBox->setValue(actual_value);
+    ui->activitySlider->setValue(actual_value * 100);
+
+    updateFitnessGUI();
 }
 
-void MainGUI::updateFitnessGUI(double consonance, double activity)
+void MainGUI::on_inactivitySlider_valueChanged(int value)
 {
-    ui->consonanceSlider->blockSignals(true); // nared tko da je if consonance+silence < 1.0 -> neutral = 1-(c+s)
-    ui->activitySlider->blockSignals(true);
+    double actual_value = (double)value / 100;
+    double others_total = ui->consonanceSpinBox->value() +
+                          ui->disonanceSpinBox->value() +
+                          ui->activitySpinBox->value();
 
-    ui->consonanceSpinBox->setValue(consonance);
-    ui->activitySpinBox->setValue(activity);
-    ui->consonanceSlider->setValue(consonance * 100);
-    ui->activitySlider->setValue(activity * 100);
+    if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
 
-    ui->consonanceSlider->blockSignals(false);
-    ui->activitySlider->blockSignals(false);
+    ui->inactivitySpinBox->setValue(actual_value);
+    ui->inactivitySlider->setValue(actual_value * 100);
 
-    core->updateFitness(consonance, activity);
+    updateFitnessGUI();
+}
+
+void MainGUI::updateFitnessGUI()
+{
+    core->updateFitness(ui->consonanceSpinBox->value(), ui->disonanceSpinBox->value(),
+                        ui->activitySpinBox->value(), ui->inactivitySpinBox->value());
 }
 
 void MainGUI::on_exportButton_toggled(bool checked)

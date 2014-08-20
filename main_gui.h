@@ -36,8 +36,12 @@ private slots:
 
     void on_exportButton_toggled(bool checked);
 
+    void on_disonanceSlider_valueChanged(int value);
+
+    void on_inactivitySlider_valueChanged(int value);
+
 private:
-    void updateFitnessGUI(double consonance, double activity);
+    void updateFitnessGUI();
 
 private:
     Ui::MainGUI *ui;
