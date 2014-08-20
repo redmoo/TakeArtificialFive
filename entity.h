@@ -49,7 +49,9 @@ private:
     QVector2D position_delta;
     double score;
     double consonant_score;
+    double disonant_score;
     double activity_score;
+    double inactivity_score;
     double mutation_rate; // nared se za reproduction
 
     // gene list
