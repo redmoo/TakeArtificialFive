@@ -30,7 +30,7 @@ public:
 
     void setCurrentSpeed(int speed);
     void updateFitnessCutoff(double cutoff);
-    void updateFitness(double consonance, double activity);
+    void updateFitness(double consonance, double disonance, double activity, double inactivity);
     void toggleGenerationExport(bool export_current);
 
 signals:
@@ -75,7 +75,9 @@ private:
 
     double fitness_cutoff;
     double consonance_coeff;
+    double disonance_coeff;
     double activity_coeff;
+    double inactivity_coeff;
     double neutral_coeff;
 
     QVector<Entity *> entities;

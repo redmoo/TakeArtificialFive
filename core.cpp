@@ -137,6 +137,7 @@ void Core::evaluateEntities()
 
     // consonance and activity count
     QVector<int> consonant_intervals = {0, 3, 4, 5, 7, 8, 9, 12};
+
     QVector<int> consonance_count(entities.size(), 0); // ratio glede na zaigrano + disonanca konsonanca.. lahk tweakas
     QVector<int> intervals_compared(entities.size(), 0);
     QVector<int> quiet_count(entities.size(), 0);
@@ -183,15 +184,19 @@ void Core::evaluateEntities()
     }
 
     for (int e = 0; e < entities.size(); e++) {
+        Entity *entity = entities.at(e);
 
-        entities.at(e)->consonant_score = intervals_compared.at(e) > 0 ? (double)consonance_count.at(e) / (double)intervals_compared.at(e) : 0;
-        entities.at(e)->activity_score = (double)(steps_per_generation - quiet_count.at(e)) / (double)steps_per_generation;
+        entity->consonant_score = intervals_compared.at(e) > 0 ? (double)consonance_count.at(e) / (double)intervals_compared.at(e) : 0;
+        entity->disonant_score = intervals_compared.at(e) > 0 ? 1 - entity->consonant_score : 0;
+        entity->activity_score = (double)(steps_per_generation - quiet_count.at(e)) / (double)steps_per_generation;
+        entity->inactivity_score = 1 -  entity->activity_score; // obrn to dvoje okol
 
-        entities.at(e)->score =
-                consonance_coeff * entities.at(e)->consonant_score +
-                activity_coeff * entities.at(e)->activity_score +
+        entity->score =
+                consonance_coeff * entity->consonant_score +
+                disonance_coeff * entity->disonant_score +
+                activity_coeff * entity->activity_score +
+                inactivity_coeff * entity->inactivity_score +
                 neutral_coeff;
-
     }
 
 }
@@ -219,28 +224,32 @@ void Core::mutateEntities()
 
 void Core::displayScores()
 {
-    emit newConsoleMessage(QString("FC = %1; C = %2; A = %3; N = %4 \n")
+    emit newConsoleMessage(QString("FC=%1;  C=%2;  D=%3;  A=%4;  I=%5;  N=%6 \n")
                            .arg(QString::number(fitness_cutoff, 'f', 2))
                            .arg(QString::number(consonance_coeff, 'f', 2))
+                           .arg(QString::number(disonance_coeff, 'f', 2))
                            .arg(QString::number(activity_coeff, 'f', 2))
+                           .arg(QString::number(inactivity_coeff, 'f', 2))
                            .arg(QString::number(neutral_coeff, 'f', 2)));
 
-    emit newConsoleMessage(QString("                   [T]       [C]      [A]"));
+    emit newConsoleMessage(QString("          [T]         [C]       [D]        [A]         [I]"));
 
     for (int e = 0; e < entities.size(); e++) {
 
-        QString message = QString("Entity [%1]:   %2    %3    %4    %5")
+        QString message = QString("E%1:     %2      %3     %4      %5      %6      %7")
                 .arg(QString::number(e))
                 .arg(QString::number(entities.at(e)->score, 'f', 2))
                 .arg(QString::number(entities.at(e)->consonant_score, 'f', 2))
+                .arg(QString::number(entities.at(e)->disonant_score, 'f', 2))
                 .arg(QString::number(entities.at(e)->activity_score, 'f', 2))
-                .arg(entities.at(e)->mutation_rate > 0 ? QString("M = %1").arg(QString::number(entities.at(e)->mutation_rate, 'f', 2)) : "");
+                .arg(QString::number(entities.at(e)->inactivity_score, 'f', 2))
+                .arg(entities.at(e)->mutation_rate > 0 ? QString("M=%1").arg(QString::number(entities.at(e)->mutation_rate, 'f', 2)) : "");
         qDebug() << message;
         emit newConsoleMessage(message);
     }
 
     qDebug() << "";
-    emit newConsoleMessage(QString("_______________________________________\n"));
+    emit newConsoleMessage(QString("_________________________________________________\n"));
 }
 
 void Core::resetEntities()
@@ -309,11 +318,13 @@ void Core::updateFitnessCutoff(double cutoff)
     fitness_cutoff = cutoff;
 }
 
-void Core::updateFitness(double consonance, double activity)
+void Core::updateFitness(double consonance, double disonance, double activity, double inactivity)
 {
     consonance_coeff = consonance;
+    disonance_coeff = disonance;
     activity_coeff = activity;
-    neutral_coeff = 1 - consonance_coeff - activity_coeff;
+    inactivity_coeff = inactivity;
+    neutral_coeff = 1 - consonance_coeff - disonance_coeff - activity_coeff - inactivity_coeff;
 }
 
 void Core::toggleGenerationExport(bool export_current)
