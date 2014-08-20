@@ -14,13 +14,14 @@ Core::Core(QObject *parent)
     , QObject(parent)
 {}
 
-void Core::initialize(time_t seed, int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed)
+void Core::initialize(time_t seed, int w_height, int w_width, int nr_of_entities, int nr_of_genes, QString g_string, int generations, int steps, int speed)
 {
     world_height = w_height;
     world_width = w_width;
 
     number_of_entities = nr_of_entities;
     number_of_genes = nr_of_genes;
+    total_genes = 3;
     number_of_generations = generations;
     steps_per_generation = steps;
     speed_ms = current_speed = speed;
@@ -32,11 +33,16 @@ void Core::initialize(time_t seed, int w_height, int w_width, int nr_of_entities
     emit seedChanged(RandomGenerator::get()->getSeed());
     emit newConsoleMessage(QString("Seed: %1 \n").arg(QString::number(RandomGenerator::get()->getSeed())));
 
+    bool gene_string_valid = geneStringValidation(g_string);
+
     for (int i = 0; i < number_of_entities; i++) {
 
         Entity *ent = new Entity(instruments[RandomGenerator::get()->random(0, 6)], i >= 10 ? i+1 : i, generateInitialPosition());
         ent->current_tone = midi_state::PAUSE;
-        assignGenes(number_of_genes, ent);
+
+        QString gene_substring = gene_string_valid ? g_string.mid(number_of_genes * i, number_of_genes) : QString();
+
+        assignGenes(number_of_genes, ent, gene_substring);
         entities.append(ent);
 
         midi_engine.setPatch(ent->patch, ent->instrument);
@@ -283,6 +289,21 @@ void Core::assembleCurrentTrack()
     }
 }
 
+bool Core::geneStringValidation(QString g_string)
+{
+    g_string = g_string.trimmed();
+
+    if (g_string.length() != number_of_entities * number_of_genes)
+        return false;
+
+    for (int i = 0; i < g_string.length(); i++) {
+        int gene_index = g_string.at(i).digitValue();
+        if (gene_index < 0 || gene_index >= total_genes)
+            return false;
+    }
+    return true;
+}
+
 void Core::exportWorldPositions()
 {
     QVector<int> world;
@@ -334,8 +355,8 @@ void Core::toggleGenerationExport(bool export_current)
 
 Gene* Core::initializeRandomGene(int index)
 {
-    int gene_index = index == -1 ? RandomGenerator::get()->random(0, 2) : index; // manual update
-    //qDebug() << gene_index;
+    int gene_index = index == -1 ? RandomGenerator::get()->random(0, total_genes - 1) : index; // manual update
+    qDebug() << gene_index;
 
     // nared checkboxe za kateri geni so v poolu
     switch (gene_index) {
@@ -345,10 +366,10 @@ Gene* Core::initializeRandomGene(int index)
     }
 }
 
-void Core::assignGenes(int amount, Entity *ent)
+void Core::assignGenes(int amount, Entity *ent, QString g_string)
 {
     for (int i = 0; i < amount; i++) {
-        ent->genes.append(initializeRandomGene());
+        ent->genes.append(initializeRandomGene(g_string.length() > 0 ? g_string.at(i).digitValue() : -1));
     }
     std::sort(ent->genes.begin(), ent->genes.end(), [](const Gene* g1, const Gene* g2) {
         return g1->getPriority() > g2->getPriority();

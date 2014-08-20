@@ -23,7 +23,7 @@ public:
     explicit Core(QObject *parent = 0);
 
 public:
-    void initialize(time_t seed, int w_height, int w_width, int nr_of_entities, int nr_of_genes, int generations, int steps, int speed);
+    void initialize(time_t seed, int w_height, int w_width, int nr_of_entities, int nr_of_genes, QString g_string, int generations, int steps, int speed);
     void pauseSimulation();
     void resumeSimulation();
     void exportWorldPositions(); // vraca 2d tabelo
@@ -47,9 +47,10 @@ private:
     void resetEntities();
     void stopCurrentTones();
     void assembleCurrentTrack();
+    bool geneStringValidation(QString g_string);
 
     Gene* initializeRandomGene(int index = -1);
-    void assignGenes(int amount, Entity *ent);
+    void assignGenes(int amount, Entity *ent, QString g_string = QString());
     QVector2D generateInitialPosition();
 
     QVector<Entity *> getEntityNeighbours(Entity *parent, int radius);
@@ -66,6 +67,7 @@ private:
 
     int number_of_entities;
     int number_of_genes;
+    int total_genes;
     int number_of_generations;
     int generation_counter;
     int steps_per_generation;
