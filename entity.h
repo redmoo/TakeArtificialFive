@@ -52,6 +52,9 @@ private:
     double disonant_score;
     double activity_score;
     double inactivity_score;
+    double tone_score;
+    double rhythm_score;
+
     double mutation_rate; // nared se za reproduction
 
     // gene list
