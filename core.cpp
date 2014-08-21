@@ -7,7 +7,7 @@
 #include <ctime>
 #include <algorithm>
 
-const int Core::instruments[7] = { 0, 0, 0, 35, 0, 27, 46}; // 0=piano, 52=choir aahs, 48=strings, 35=fretless bass, 74=pan flute
+const int Core::instruments[7] = { 0, 0, 0, 35, 0, 0, 46}; // 0=piano, 52=choir aahs, 48=strings, 35=fretless bass, 74=pan flute
 
 Core::Core(QObject *parent)
     : state(simulation_state::IDLE)
@@ -139,9 +139,8 @@ void Core::processNextStep()
 
 void Core::evaluateEntities()
 {
-    // BUG! UCASIH JE NAN K NC NE IGRA! deljenje z 0 najbrs... CHECK IT OUT!!!
+    // consonance and activity
 
-    // consonance and activity count
     QVector<int> consonant_intervals = {0, 3, 4, 5, 7, 8, 9, 12};
 
     QVector<int> consonance_count(entities.size(), 0); // ratio glede na zaigrano + disonanca konsonanca.. lahk tweakas
@@ -174,6 +173,9 @@ void Core::evaluateEntities()
                     intervals_compared[p]++;
                     continue;
                 }
+                else if (entity_tone == midi_state::PAUSE && pair_tone == midi_state::PAUSE) {
+                    continue;
+                }
 
                 int interval = std::abs(entity_tone - pair_tone);
                 if (consonant_intervals.contains(interval % 12)) { // a ni skor bols ce je sm 12 oz nastavs radius!
@@ -189,6 +191,30 @@ void Core::evaluateEntities()
         }
     }
 
+    // tone and rhythm
+    // TODO: za ton check nared utezeno da ce je 91 istih pa 9 pol drgacnih je to slabs kokr ce je vsakih po 10
+    QVector<int> tones_played(entities.size(), 0);
+    QVector<int> different_tones(entities.size(), 0);
+
+    for (int e = 0; e < entities.size(); e++) {
+        Entity *entity = entities.at(e);
+        QVector<int> tones;
+
+        for (int beat = 0; beat < steps_per_generation; beat++) {
+            int tone = entity->track.at(beat);
+
+            if (tone != midi_state::PAUSE && tone != midi_state::SUSTAIN) {
+                tones_played[e]++;
+                if (!tones.contains(tone)) tones.push_back(tone);
+            }
+        }
+
+        different_tones[e] = tones.size();
+    }
+
+
+    // scoring
+
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
 
@@ -196,6 +222,9 @@ void Core::evaluateEntities()
         entity->disonant_score = intervals_compared.at(e) > 0 ? 1 - entity->consonant_score : 0;
         entity->activity_score = (double)(steps_per_generation - quiet_count.at(e)) / (double)steps_per_generation;
         entity->inactivity_score = 1 -  entity->activity_score; // obrn to dvoje okol
+
+        entity->tone_score = tones_played.at(e) > 0 ? (double)different_tones.at(e) / (double)tones_played.at(e) : 0;
+        entity->rhythm_score = 0;
 
         entity->score =
                 consonance_coeff * entity->consonant_score +
@@ -213,7 +242,7 @@ void Core::mutateEntities()
         Entity *entity = entities.at(e);
 
         if (entity->score < fitness_cutoff) {
-            double mutation_rate = 1 - entity->score; // mutation rate od zunaj veca ali mansa koliko mutira
+            double mutation_rate = double(1 - entity->score) * mutation_factor;
 
             for (int g = 0; g < entity->genes.size(); g++) {
                 entity->genes.at(g)->mutateParameters(mutation_rate);
@@ -230,32 +259,40 @@ void Core::mutateEntities()
 
 void Core::displayScores()
 {
-    emit newConsoleMessage(QString("FC=%1;  C=%2;  D=%3;  A=%4;  I=%5;  N=%6 \n")
+    emit newConsoleMessage(QString("FC=%1; M=%2;")
                            .arg(QString::number(fitness_cutoff, 'f', 2))
+                           .arg(QString::number(mutation_factor, 'f', 2)));
+
+    emit newConsoleMessage(QString("C=%1; D=%2; A=%3; I=%4; T=%5; R=%6; N=%7 \n")
                            .arg(QString::number(consonance_coeff, 'f', 2))
                            .arg(QString::number(disonance_coeff, 'f', 2))
                            .arg(QString::number(activity_coeff, 'f', 2))
                            .arg(QString::number(inactivity_coeff, 'f', 2))
+                           .arg(QString::number(tone_coeff, 'f', 2))
+                           .arg(QString::number(rhythm_coeff, 'f', 2))
                            .arg(QString::number(neutral_coeff, 'f', 2)));
 
-    emit newConsoleMessage(QString("          [T]         [C]       [D]        [A]         [I]"));
+
+    emit newConsoleMessage(QString("        [Total]     [C]       [D]         [A]        [I]        [T]        [R]"));
 
     for (int e = 0; e < entities.size(); e++) {
 
-        QString message = QString("E%1:     %2      %3     %4      %5      %6      %7")
+        QString message = QString("E%1:   %2        %3     %4      %5      %6     %7     %8     %9")
                 .arg(QString::number(e))
                 .arg(QString::number(entities.at(e)->score, 'f', 2))
                 .arg(QString::number(entities.at(e)->consonant_score, 'f', 2))
                 .arg(QString::number(entities.at(e)->disonant_score, 'f', 2))
                 .arg(QString::number(entities.at(e)->activity_score, 'f', 2))
                 .arg(QString::number(entities.at(e)->inactivity_score, 'f', 2))
+                .arg(QString::number(entities.at(e)->tone_score, 'f', 2))
+                .arg(QString::number(entities.at(e)->rhythm_score, 'f', 2))
                 .arg(entities.at(e)->mutation_rate > 0 ? QString("M=%1").arg(QString::number(entities.at(e)->mutation_rate, 'f', 2)) : "");
-        qDebug() << message;
+        //qDebug() << message;
         emit newConsoleMessage(message);
     }
 
     qDebug() << "";
-    emit newConsoleMessage(QString("_________________________________________________\n"));
+    emit newConsoleMessage(QString("_________________________________________________________\n"));
 }
 
 void Core::resetEntities()
@@ -270,6 +307,10 @@ void Core::resetEntities()
         entity->beat_counter = 0;
         entity->mutation_rate = 0;
         entity->state = entity_state::IDLE;
+
+        for (int g = 0; g < entity->genes.size(); g++) {
+            entity->genes.at(g)->resetGene();
+        }
     }
 }
 
@@ -339,13 +380,20 @@ void Core::updateFitnessCutoff(double cutoff)
     fitness_cutoff = cutoff;
 }
 
-void Core::updateFitness(double consonance, double disonance, double activity, double inactivity)
+void Core::updateMutationFactor(double mutation)
+{
+    mutation_factor = mutation;
+}
+
+void Core::updateFitness(double consonance, double disonance, double activity, double inactivity, double tonality, double rhythm)
 {
     consonance_coeff = consonance;
     disonance_coeff = disonance;
     activity_coeff = activity;
     inactivity_coeff = inactivity;
-    neutral_coeff = 1 - consonance_coeff - disonance_coeff - activity_coeff - inactivity_coeff;
+    tone_coeff = tonality;
+    rhythm_coeff = rhythm;
+    neutral_coeff = 1 - consonance_coeff - disonance_coeff - activity_coeff - inactivity_coeff - tone_coeff - rhythm_coeff;
 }
 
 void Core::toggleGenerationExport(bool export_current)
@@ -356,12 +404,11 @@ void Core::toggleGenerationExport(bool export_current)
 Gene* Core::initializeRandomGene(int index)
 {
     int gene_index = index == -1 ? RandomGenerator::get()->random(0, total_genes - 1) : index; // manual update
-    qDebug() << gene_index;
 
     // nared checkboxe za kateri geni so v poolu
     switch (gene_index) {
         case 0: return new LonelyGene();
-        case 1: return new ChordGene();
+        case 1: return new ChordGene(steps_per_generation);
         case 2: return new QuietGene();
     }
 }
