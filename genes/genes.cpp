@@ -39,6 +39,11 @@ void LonelyGene::mutateParameters(double mutation_rate)
     }
 }
 
+void LonelyGene::resetGene()
+{
+
+}
+
 /** SEEKING GENE **/
 
 SeekingGene::SeekingGene()
@@ -64,17 +69,27 @@ void SeekingGene::mutateParameters(double mutation_rate)
 
 }
 
+void SeekingGene::resetGene()
+{
+
+}
+
 /** CHORD GENE **/
 
-ChordGene::ChordGene()
+ChordGene::ChordGene(int steps)
+    : total_steps(steps)
 {
     interval.initialize(0, 12); // mors dat sanso da ne zaigra nic, torej toni+1 -> random nared da 0 je 0 kr zakaj bi zaigral isti ton?
     duration.initialize(1, 8);
     movement_delta[1].initialize(-1, 1);
     movement_delta[0].initialize(-1, 1);
 
-    //signs.clear();
-    //sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1;
+    signs.clear(); // al je dolzina steps pa se vsakic resetira al pa je fixna dolzina pa pol se vrti okol
+    sign_counter = 0;
+
+    for (int i = 0; i < steps; i++) {
+        signs.push_back(RandomGenerator::get()->random01() > 0.5 ? 1 : -1);
+    }
 }
 
 bool ChordGene::trigger(QVector<Entity *> neighbours)
@@ -86,7 +101,8 @@ QVector3D ChordGene::generateTone(QVector<Entity *> neighbours)
 {
     // test, da obraca sign k pride cez mejo, da obraca na X dob, al pa da odigra oktavo visji/nizji
     int tone;
-    int sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1; // KAKO TO REST!
+    //int sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1;
+    int sign = signs.at(sign_counter++);
 
     if (neighbours.at(0)->getCurrentTone() != midi_state::PAUSE) {
         tone = neighbours.at(0)->getCurrentTone() + (sign * interval.getValue());
@@ -96,7 +112,6 @@ QVector3D ChordGene::generateTone(QVector<Entity *> neighbours)
     else {
         tone = midi_state::PAUSE;
     }
-    //sign = -sign;
 
     return QVector3D(tone, 100, duration.getValue());
 }
@@ -116,8 +131,17 @@ void ChordGene::mutateParameters(double mutation_rate)
         movement_delta[1].mutate();
     }
 
-    //if (RandomGenerator::get()->random01() <= mutation_rate)
-        //sign = RandomGenerator::get()->random01() > 0.5 ? 1 : -1;
+    for (int i = 0; i < total_steps; i++) {
+        if (RandomGenerator::get()->random01() <= mutation_rate) {
+            signs[i] = RandomGenerator::get()->random01() > 0.5 ? 1 : -1;
+        }
+    }
+
+}
+
+void ChordGene::resetGene()
+{
+    sign_counter = 0;
 }
 
 
@@ -151,4 +175,9 @@ void QuietGene::mutateParameters(double mutation_rate)
         movement_delta[0].mutate();
         movement_delta[1].mutate();
     }
+}
+
+void QuietGene::resetGene()
+{
+
 }

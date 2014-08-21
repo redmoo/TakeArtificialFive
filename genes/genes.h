@@ -14,6 +14,7 @@ public:
     QVector2D generateMovementDelta();
 
     void mutateParameters(double mutation_rate);
+    void resetGene();
 
 private:
     GeneParameter default_tone;
@@ -33,6 +34,7 @@ public:
     QVector2D generateMovementDelta();
 
     void mutateParameters(double mutation_rate);
+    void resetGene();
 
 private:
 };
@@ -41,16 +43,19 @@ class ChordGene : public Gene
 {
 
 public:
-    explicit ChordGene();
+    explicit ChordGene(int steps);
 
     bool trigger(QVector<Entity*> neighbours);
     QVector3D generateTone(QVector<Entity*> neighbours);
     QVector2D generateMovementDelta();
 
     void mutateParameters(double mutation_rate);
+    void resetGene();
 
 private:
+    int total_steps;
     QVector<int> signs;
+    int sign_counter;
 
     GeneParameter interval; // PREVERI KAJ MAJO ENTITETE ZA DEFAULT TON! razn ce ta prever a ni un se nc zaigral
     GeneParameter duration;
@@ -69,6 +74,7 @@ public:
     QVector2D generateMovementDelta();
 
     void mutateParameters(double mutation_rate);
+    void resetGene();
 
 private:
     GeneParameter duration;

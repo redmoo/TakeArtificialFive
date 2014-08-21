@@ -21,6 +21,7 @@ public:
     virtual QVector2D generateMovementDelta() = 0; // kasnej bo glede na sosede & sebe
 
     virtual void mutateParameters(double mutation_rate) = 0;
+    virtual void resetGene() = 0;
 
     int getPriority() const;
     int getPerceptionRadius() const;
