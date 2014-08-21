@@ -36,8 +36,10 @@ void MainGUI::on_startButton_clicked()
                      ui->speedSpinBox->value());
 
     core->updateFitnessCutoff(ui->fitnessSpinBox->value());
+    core->updateMutationFactor(ui->mutationSpinBox->value());
     core->updateFitness(ui->consonanceSpinBox->value(), ui->disonanceSpinBox->value(),
-                        ui->activitySpinBox->value(), ui->inactivitySpinBox->value());
+                        ui->activitySpinBox->value(), ui->inactivitySpinBox->value(),
+                        ui->tonalSpinBox->value(), ui->rhythmicalSpinBox->value());
     core->toggleGenerationExport(ui->exportButton->isChecked());
 
     ui->worldHeightSpinBox->setEnabled(false);
@@ -98,12 +100,21 @@ void MainGUI::on_fitnessSlider_valueChanged(int value)
     core->updateFitnessCutoff(actual_value);
 }
 
+void MainGUI::on_mutationSlider_valueChanged(int value)
+{
+    double actual_value = (double)value / 100;
+    ui->mutationSpinBox->setValue(actual_value);
+    core->updateMutationFactor(actual_value);
+}
+
 void MainGUI::on_consonanceSlider_valueChanged(int value)
 {   
     double actual_value = (double)value / 100;
     double others_total = ui->disonanceSpinBox->value() +
                           ui->activitySpinBox->value() +
-                          ui->inactivitySpinBox->value();
+                          ui->inactivitySpinBox->value() +
+                          ui->tonalSpinBox->value() +
+                          ui->rhythmicalSpinBox->value();
 
     if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total; // dej v eno metodo k vrne drug parametr
 
@@ -118,7 +129,9 @@ void MainGUI::on_disonanceSlider_valueChanged(int value)
     double actual_value = (double)value / 100;
     double others_total = ui->consonanceSpinBox->value() +
                           ui->activitySpinBox->value() +
-                          ui->inactivitySpinBox->value();
+                          ui->inactivitySpinBox->value() +
+                          ui->tonalSpinBox->value() +
+                          ui->rhythmicalSpinBox->value();
 
     if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
 
@@ -133,7 +146,9 @@ void MainGUI::on_activitySlider_valueChanged(int value)
     double actual_value = (double)value / 100;
     double others_total = ui->consonanceSpinBox->value() +
                           ui->disonanceSpinBox->value() +
-                          ui->inactivitySpinBox->value();
+                          ui->inactivitySpinBox->value() +
+                          ui->tonalSpinBox->value() +
+                          ui->rhythmicalSpinBox->value();
 
     if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
 
@@ -148,7 +163,9 @@ void MainGUI::on_inactivitySlider_valueChanged(int value)
     double actual_value = (double)value / 100;
     double others_total = ui->consonanceSpinBox->value() +
                           ui->disonanceSpinBox->value() +
-                          ui->activitySpinBox->value();
+                          ui->activitySpinBox->value() +
+                          ui->tonalSpinBox->value() +
+                          ui->rhythmicalSpinBox->value();
 
     if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
 
@@ -158,10 +175,45 @@ void MainGUI::on_inactivitySlider_valueChanged(int value)
     updateFitnessGUI();
 }
 
+void MainGUI::on_tonalSlider_valueChanged(int value)
+{
+    double actual_value = (double)value / 100;
+    double others_total = ui->consonanceSpinBox->value() +
+                          ui->disonanceSpinBox->value() +
+                          ui->activitySpinBox->value() +
+                          ui->inactivitySpinBox->value() +
+                          ui->rhythmicalSpinBox->value();
+
+    if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
+
+    ui->tonalSpinBox->setValue(actual_value);
+    ui->tonalSlider->setValue(actual_value * 100);
+
+    updateFitnessGUI();
+}
+
+void MainGUI::on_rhythmicalSlider_valueChanged(int value)
+{
+    double actual_value = (double)value / 100;
+    double others_total = ui->consonanceSpinBox->value() +
+                          ui->disonanceSpinBox->value() +
+                          ui->activitySpinBox->value() +
+                          ui->inactivitySpinBox->value() +
+                          ui->tonalSpinBox->value();
+
+    if (others_total + actual_value > 1.0) actual_value = 1.0 - others_total;
+
+    ui->rhythmicalSpinBox->setValue(actual_value);
+    ui->rhythmicalSlider->setValue(actual_value * 100);
+
+    updateFitnessGUI();
+}
+
 void MainGUI::updateFitnessGUI()
 {
     core->updateFitness(ui->consonanceSpinBox->value(), ui->disonanceSpinBox->value(),
-                        ui->activitySpinBox->value(), ui->inactivitySpinBox->value());
+                        ui->activitySpinBox->value(), ui->inactivitySpinBox->value(),
+                        ui->tonalSpinBox->value(), ui->rhythmicalSpinBox->value());
 }
 
 void MainGUI::on_exportButton_toggled(bool checked)

@@ -40,6 +40,12 @@ private slots:
 
     void on_inactivitySlider_valueChanged(int value);
 
+    void on_tonalSlider_valueChanged(int value);
+
+    void on_rhythmicalSlider_valueChanged(int value);
+
+    void on_mutationSlider_valueChanged(int value);
+
 private:
     void updateFitnessGUI();
 
