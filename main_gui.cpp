@@ -24,6 +24,13 @@ MainGUI::~MainGUI()
 
 void MainGUI::on_startButton_clicked()
 {
+    core->updateFitnessCutoff(ui->fitnessSpinBox->value());
+    core->updateMutationFactor(ui->mutationSpinBox->value());
+    updateFitnessGUI();
+    core->toggleGenerationExport(ui->exportButton->isChecked());
+    core->toggleInitialPositionMutation(ui->positionCheckBox->isChecked());
+    core->toggleFastForward(ui->fastForwardButton->isChecked());
+
     /* seed, height, width, entities, genes, gene_string, generations, steps, speed */
     core->initialize(ui->seedSpinBox->value(),
                      ui->worldHeightSpinBox->value(),
@@ -34,13 +41,6 @@ void MainGUI::on_startButton_clicked()
                      ui->generationsSpinBox->value(),
                      ui->stepsSpinBox->value(),
                      ui->speedSpinBox->value());
-
-    core->updateFitnessCutoff(ui->fitnessSpinBox->value());
-    core->updateMutationFactor(ui->mutationSpinBox->value());
-    core->updateFitness(ui->consonanceSpinBox->value(), ui->disonanceSpinBox->value(),
-                        ui->activitySpinBox->value(), ui->inactivitySpinBox->value(),
-                        ui->tonalSpinBox->value(), ui->rhythmicalSpinBox->value());
-    core->toggleGenerationExport(ui->exportButton->isChecked());
 
     ui->worldHeightSpinBox->setEnabled(false);
     ui->worldWidthSpinBox->setEnabled(false);
@@ -57,16 +57,17 @@ void MainGUI::on_startButton_clicked()
     ui->speedSlider->setValue(ui->speedSpinBox->value());
     ui->speedSlider->setEnabled(true);
 
-
 }
 
 void MainGUI::on_pauseButton_toggled(bool checked)
 {
     if (checked) {
         ui->pauseButton->setText(QString("Resume"));
+        ui->speedSlider->setDisabled(true);
         core->pauseSimulation();
     } else {
         ui->pauseButton->setText(QString("Pause"));
+        ui->speedSlider->setEnabled(true);
         core->resumeSimulation();
     }
 }
@@ -192,6 +193,18 @@ void MainGUI::on_tonalSlider_valueChanged(int value)
     updateFitnessGUI();
 }
 
+void MainGUI::on_tonalMaxSlider_valueChanged(int value)
+{
+    double actual_value = (double)value / 100;
+    ui->tonalMaxSpinBox->setValue(actual_value);
+    updateFitnessGUI();
+}
+
+void MainGUI::on_tonalBinaryCheckBox_clicked(bool checked)
+{
+    updateFitnessGUI();
+}
+
 void MainGUI::on_rhythmicalSlider_valueChanged(int value)
 {
     double actual_value = (double)value / 100;
@@ -209,14 +222,37 @@ void MainGUI::on_rhythmicalSlider_valueChanged(int value)
     updateFitnessGUI();
 }
 
+void MainGUI::on_rhythmicalMaxSlider_valueChanged(int value)
+{
+    double actual_value = (double)value / 100;
+    ui->rhythmicalMaxSpinBox->setValue(actual_value);
+    updateFitnessGUI();
+}
+
+void MainGUI::on_rhythmicalBinaryCheckBox_clicked(bool checked)
+{
+    updateFitnessGUI();
+}
+
 void MainGUI::updateFitnessGUI()
 {
     core->updateFitness(ui->consonanceSpinBox->value(), ui->disonanceSpinBox->value(),
                         ui->activitySpinBox->value(), ui->inactivitySpinBox->value(),
-                        ui->tonalSpinBox->value(), ui->rhythmicalSpinBox->value());
+                        ui->tonalSpinBox->value(), ui->tonalMaxSpinBox->value(), ui->tonalBinaryCheckBox->isChecked(),
+                        ui->rhythmicalSpinBox->value(), ui->rhythmicalMaxSpinBox->value(), ui->rhythmicalBinaryCheckBox->isChecked());
 }
 
 void MainGUI::on_exportButton_toggled(bool checked)
 {
     core->toggleGenerationExport(checked);
+}
+
+void MainGUI::on_positionCheckBox_toggled(bool checked)
+{
+    core->toggleInitialPositionMutation(checked);
+}
+
+void MainGUI::on_fastForwardButton_clicked(bool checked)
+{
+    core->toggleFastForward(checked);
 }

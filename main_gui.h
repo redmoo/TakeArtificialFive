@@ -46,6 +46,18 @@ private slots:
 
     void on_mutationSlider_valueChanged(int value);
 
+    void on_positionCheckBox_toggled(bool checked);
+
+    void on_fastForwardButton_clicked(bool checked);
+
+    void on_tonalBinaryCheckBox_clicked(bool checked);
+
+    void on_tonalMaxSlider_valueChanged(int value);
+
+    void on_rhythmicalMaxSlider_valueChanged(int value);
+
+    void on_rhythmicalBinaryCheckBox_clicked(bool checked);
+
 private:
     void updateFitnessGUI();
 
