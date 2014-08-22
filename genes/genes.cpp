@@ -6,7 +6,7 @@
 
 LonelyGene::LonelyGene()
 {
-    default_tone.initialize(48, 72); // mors dat sanso da ne zaigra nic, torej toni+1 -> random
+    default_tone.initialize(24, 96); // mors dat sanso da ne zaigra nic, torej toni+1 -> random
     duration.initialize(1, 8);
     movement_delta[1].initialize(-1, 1);
     movement_delta[0].initialize(-1, 1);
@@ -106,12 +106,14 @@ QVector3D ChordGene::generateTone(QVector<Entity *> neighbours)
 
     if (neighbours.at(0)->getCurrentTone() != midi_state::PAUSE) {
         tone = neighbours.at(0)->getCurrentTone() + (sign * interval.getValue());
-        if (tone < 0) tone += 12;
-        else if (tone > 127) tone -= 12;
+
+        if (tone < 24) tone += 12;
+        else if (tone > 96) tone -= 12;
     }
     else {
         tone = midi_state::PAUSE;
     }
+
 
     return QVector3D(tone, 100, duration.getValue());
 }
