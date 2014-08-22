@@ -31,8 +31,13 @@ public:
     void setCurrentSpeed(int speed);
     void updateFitnessCutoff(double cutoff);
     void updateMutationFactor(double mutation);
-    void updateFitness(double consonance, double disonance, double activity, double inactivity, double tonality, double rhythm);
+    void toggleInitialPositionMutation(bool mutate);
+    void updateFitness(double consonance, double disonance,
+                       double activity, double inactivity,
+                       double tonality, double tonality_max, bool tonality_bin,
+                       double rhythm, double rhythm_max, bool rhythm_bin);
     void toggleGenerationExport(bool export_current);
+    void toggleFastForward(bool ff);
 
 signals:
     void worldChanged(QVector<int> world, int height, int width);
@@ -75,16 +80,25 @@ private:
     int step_counter;
     int speed_ms;
     int current_speed;
+    bool fast_forward;
 
     double fitness_cutoff;
     double mutation_factor;
+    bool mutate_initial_position;
 
     double consonance_coeff;
     double disonance_coeff;
     double activity_coeff;
     double inactivity_coeff;
+
     double tone_coeff;
+    double tone_max_similarity;
+    bool tone_binary;
+
     double rhythm_coeff;
+    double rhythm_max_similarity;
+    bool rhythm_binary;
+
     double neutral_coeff;
 
     QVector<Entity *> entities;

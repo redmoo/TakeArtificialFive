@@ -2,6 +2,7 @@
 
 #include "random_generator.h"
 
+#include <QCoreApplication>
 #include <QDebug>
 #include <iostream>
 #include <ctime>
@@ -77,7 +78,7 @@ void Core::processNextStep()
         Entity *entity = entities.at(e);
 
         if (entity->state == entity_state::PLAYING && entity->beat_counter == 0) {
-            if(current_speed != 0)
+            if(current_speed != 0 && !fast_forward)
                 midi_engine.stopNote(entity->current_tone, entity->patch);
             entity->state = entity_state::IDLE;
         }
@@ -113,7 +114,7 @@ void Core::processNextStep()
         if (entity->state == entity_state::IDLE && entity->beat_counter > 0) {
             entity->track.append(entity->current_tone);
 
-            if (entity->current_tone != midi_state::PAUSE && current_speed != 0)
+            if (entity->current_tone != midi_state::PAUSE && current_speed != 0 && !fast_forward)
                 midi_engine.playNote(entity->current_tone, entity->patch, entity->loudness); // nared da lahko igrajo NIC za x dob
             entity->state = entity_state::PLAYING;
             entity->beat_counter--;
@@ -191,27 +192,72 @@ void Core::evaluateEntities()
         }
     }
 
-    // tone and rhythm
-    // TODO: za ton check nared utezeno da ce je 91 istih pa 9 pol drgacnih je to slabs kokr ce je vsakih po 10
-    QVector<int> tones_played(entities.size(), 0);
-    QVector<int> different_tones(entities.size(), 0);
+    // tone & rhythm
+
+    QVector<double> tone_scores(entities.size(), 0);
+    QVector<double> rhythm_scores(entities.size(), 0);
 
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
-        QVector<int> tones;
+        QMap<int, int> tone_count;
+        QMap<int, int> rhythm_count;
+
+        int tones_played = 0;
+        int tones_played_full_duration = 0;
+
+        int duration_count = 0;
 
         for (int beat = 0; beat < steps_per_generation; beat++) {
             int tone = entity->track.at(beat);
 
+            // tone
             if (tone != midi_state::PAUSE && tone != midi_state::SUSTAIN) {
-                tones_played[e]++;
-                if (!tones.contains(tone)) tones.push_back(tone);
+                tones_played++;
+
+                if (!tone_count.contains(tone)) tone_count.insert(tone, 1);
+                else tone_count[tone]++;
             }
+
+            // rhythm (ignoriramo zadnjo noto, ki je lahko odrezana zaradi stevila stepov)
+            if (tone != midi_state::SUSTAIN && duration_count > 0) {
+                if (!rhythm_count.contains(duration_count)) rhythm_count.insert(duration_count, 1);
+                else rhythm_count[duration_count]++;
+                duration_count = 0;
+                tones_played_full_duration++;
+            }
+
+            if (tone != midi_state::PAUSE) duration_count++;
         }
 
-        different_tones[e] = tones.size();
-    }
+        // tone
+        double t_score = 1.0; // a dam 0 ce ni nobenga tona igral?
+        // napis u diplomo da je hujs ce je 00000000001 kot 0001
 
+        foreach (int t_value, tone_count) {
+            double percentage = (double)t_value / (double)tones_played;
+
+            if (tone_binary && percentage > tone_max_similarity) {
+                t_score = 0;
+                break;
+            }
+            t_score -= percentage > tone_max_similarity ? percentage - tone_max_similarity : 0.0;
+        }
+        tone_scores[e] = t_score;
+
+        // rhythm
+        double r_score = 1.0;
+
+        foreach (int r_value, rhythm_count) {
+            double percentage = (double)r_value / (double)tones_played_full_duration;
+
+            if (rhythm_binary && percentage > rhythm_max_similarity) {
+                r_score = 0;
+                break;
+            }
+            r_score -= percentage > rhythm_max_similarity ? percentage - rhythm_max_similarity : 0.0;
+        }
+        rhythm_scores[e] = r_score;
+    }
 
     // scoring
 
@@ -223,14 +269,16 @@ void Core::evaluateEntities()
         entity->activity_score = (double)(steps_per_generation - quiet_count.at(e)) / (double)steps_per_generation;
         entity->inactivity_score = 1 -  entity->activity_score; // obrn to dvoje okol
 
-        entity->tone_score = tones_played.at(e) > 0 ? (double)different_tones.at(e) / (double)tones_played.at(e) : 0;
-        entity->rhythm_score = 0;
+        entity->tone_score = tone_scores.at(e);
+        entity->rhythm_score = rhythm_scores.at(e);
 
         entity->score =
                 consonance_coeff * entity->consonant_score +
                 disonance_coeff * entity->disonant_score +
                 activity_coeff * entity->activity_score +
                 inactivity_coeff * entity->inactivity_score +
+                tone_coeff * entity->tone_score +
+                rhythm_coeff * entity->rhythm_score +
                 neutral_coeff;
     }
 
@@ -246,6 +294,11 @@ void Core::mutateEntities()
 
             for (int g = 0; g < entity->genes.size(); g++) {
                 entity->genes.at(g)->mutateParameters(mutation_rate);
+            }
+
+            // TEST - mutate initial position; Test2 = gene has own starting position
+            if (mutate_initial_position && RandomGenerator::get()->random01() <= mutation_rate) {
+                entity->initial_position = generateInitialPosition();
             }
 
             entity->mutation_rate = mutation_rate;
@@ -303,6 +356,7 @@ void Core::resetEntities()
         midi_engine.stopNote(entity->current_tone, entity->patch);
 
         entity->track.clear();
+        //entity->current_tone = midi_state::PAUSE; // ZIHR DODA NEKAJ ZANIMIVEGA CE NE CLEARAMO TEGA
         entity->position = entity->initial_position;
         entity->beat_counter = 0;
         entity->mutation_rate = 0;
@@ -385,20 +439,42 @@ void Core::updateMutationFactor(double mutation)
     mutation_factor = mutation;
 }
 
-void Core::updateFitness(double consonance, double disonance, double activity, double inactivity, double tonality, double rhythm)
+void Core::toggleInitialPositionMutation(bool mutate)
+{
+    mutate_initial_position = mutate;
+}
+
+void Core::updateFitness(double consonance, double disonance,
+                         double activity, double inactivity,
+                         double tonality, double tonality_max, bool tonality_bin,
+                         double rhythm, double rhythm_max, bool rhythm_bin)
 {
     consonance_coeff = consonance;
     disonance_coeff = disonance;
+
     activity_coeff = activity;
     inactivity_coeff = inactivity;
+
     tone_coeff = tonality;
+    tone_max_similarity = tonality_max;
+    tone_binary = tonality_bin;
+
     rhythm_coeff = rhythm;
-    neutral_coeff = 1 - consonance_coeff - disonance_coeff - activity_coeff - inactivity_coeff - tone_coeff - rhythm_coeff;
+    rhythm_max_similarity = rhythm_max;
+    rhythm_binary = rhythm_bin;
+
+    neutral_coeff = 1.0 - consonance_coeff - disonance_coeff - activity_coeff - inactivity_coeff - tone_coeff - rhythm_coeff;
 }
 
 void Core::toggleGenerationExport(bool export_current)
 {
     export_current_generation = export_current;
+}
+
+void Core::toggleFastForward(bool ff)
+{
+    stopCurrentTones();
+    fast_forward = ff;
 }
 
 Gene* Core::initializeRandomGene(int index)
@@ -446,9 +522,9 @@ QVector<Entity *> Core::getEntityNeighbours(Entity* parent, int radius)
 bool Core::inRadius(QVector2D center, QVector2D neighbour, int radius)
 {
     int dh = std::abs(center.x() - neighbour.x());
-    dh = dh > world_height/2 ? world_height - dh : dh;
+    dh = dh > (double)world_height/2 ? world_height - dh : dh;
     int dw = std::abs(center.y() - neighbour.y());
-    dw = dw > world_width/2 ? world_width - dw : dw;
+    dw = dw > (double)world_width/2 ? world_width - dw : dw;
 
     return dh <= radius && dw <= radius;
 }
@@ -466,30 +542,36 @@ int Core::entityPresent(int row, int column)
 
 void Core::timerEvent(QTimerEvent *)
 {
-    // nared medoto k handla ta shit... pa next step razdel na podmetode...
-    step_counter++;
-    processNextStep();
-    exportWorldPositions();
+    int FF_counter = 0;
 
-    if (generation_counter < number_of_generations && step_counter == steps_per_generation) {
+    while (FF_counter < 1 || fast_forward) {
+        // nared medoto k handla ta shit... pa next step razdel na podmetode...
+        step_counter++;
+        processNextStep();
+        exportWorldPositions();
 
-        assembleCurrentTrack(); // a to sploh rabm
-        evaluateEntities();
-        mutateEntities();
-        displayScores();
+        if ((generation_counter < number_of_generations || number_of_generations == 0) && step_counter == steps_per_generation) {
 
-        if (export_current_generation)
-            midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation);
+            //assembleCurrentTrack(); // a to sploh rabm
+            evaluateEntities();
+            mutateEntities();
+            displayScores();
 
-        resetEntities();
-        step_counter = 0;
-        generation_counter++;
+            if (export_current_generation)
+                midi_engine.exportTrack(entities, current_speed + 10, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation);
 
+            resetEntities();
+            step_counter = 0;
+            generation_counter++;
+
+        }
+        else if (generation_counter == number_of_generations && step_counter == steps_per_generation) {
+            killTimer(timer_id);
+            midi_engine.close();
+            midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation); // nared metodo k vrne ime fajla in passas ime
+        }
+
+        FF_counter++;
+        if (FF_counter % steps_per_generation == 0) QCoreApplication::processEvents();
     }
-    else if (generation_counter == number_of_generations && step_counter == steps_per_generation) {
-        killTimer(timer_id);
-        midi_engine.close();
-        midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation); // nared metodo k vrne ime fajla in passas ime
-    }
-
 }
