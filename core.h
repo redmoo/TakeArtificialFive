@@ -38,6 +38,7 @@ public:
                        double rhythm, double rhythm_max, bool rhythm_bin);
     void toggleGenerationExport(bool export_current);
     void toggleFastForward(bool ff);
+    void setTransposition(int t);
 
 signals:
     void worldChanged(QVector<int> world, int height, int width);
@@ -81,6 +82,8 @@ private:
     int speed_ms;
     int current_speed;
     bool fast_forward;
+    int transposition_queue;
+    int transposition;
 
     double fitness_cutoff;
     double mutation_factor;

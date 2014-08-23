@@ -7,6 +7,7 @@
 #include <iostream>
 #include <ctime>
 #include <algorithm>
+#include <omp.h>
 
 const int Core::instruments[7] = { 0, 0, 0, 35, 0, 0, 46}; // 0=piano, 52=choir aahs, 48=strings, 35=fretless bass, 74=pan flute
 
@@ -50,10 +51,9 @@ void Core::initialize(time_t seed, int w_height, int w_width, int nr_of_entities
 
     }
 
+    transposition = transposition_queue = 0;
     generation_counter = 1; // updejti .. a gremo od 0 al od 1...
     step_counter = 0;
-    resumeSimulation();
-
 }
 
 void Core::pauseSimulation()
@@ -74,12 +74,13 @@ void Core::resumeSimulation()
 
 void Core::processNextStep()
 {
+    #pragma omp parallel for
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
 
         if (entity->state == entity_state::PLAYING && entity->beat_counter == 0) {
             if(current_speed != 0 && !fast_forward)
-                midi_engine.stopNote(entity->current_tone, entity->patch);
+                midi_engine.stopNote(entity->current_tone + transposition, entity->patch);
             entity->state = entity_state::IDLE;
         }
         else if (entity->state == entity_state::PLAYING && entity->beat_counter > 0) {
@@ -107,6 +108,7 @@ void Core::processNextStep()
     }
 
     // loop ko zaigras ton in dekrementiras play counter (vsem...) in premaknes entitete na nove queued up pozicije + status
+    #pragma omp parallel for
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
 
@@ -115,7 +117,7 @@ void Core::processNextStep()
             entity->track.append(entity->current_tone);
 
             if (entity->current_tone != midi_state::PAUSE && current_speed != 0 && !fast_forward)
-                midi_engine.playNote(entity->current_tone, entity->patch, entity->loudness); // nared da lahko igrajo NIC za x dob
+                midi_engine.playNote(entity->current_tone + transposition, entity->patch, entity->loudness); // nared da lahko igrajo NIC za x dob
             entity->state = entity_state::PLAYING;
             entity->beat_counter--;
 
@@ -150,6 +152,7 @@ void Core::evaluateEntities()
 
     QVector<int> current_beat(entities.size(), midi_state::PAUSE);
 
+    #pragma omp parallel for
     for (int beat = 0; beat < steps_per_generation; beat++) {
 
         for (int i = 0; i < entities.size(); i++) {
@@ -197,6 +200,7 @@ void Core::evaluateEntities()
     QVector<double> tone_scores(entities.size(), 0);
     QVector<double> rhythm_scores(entities.size(), 0);
 
+    #pragma omp parallel for
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
         QMap<int, int> tone_count;
@@ -261,6 +265,7 @@ void Core::evaluateEntities()
 
     // scoring
 
+    #pragma omp parallel for
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
 
@@ -350,6 +355,7 @@ void Core::displayScores()
 
 void Core::resetEntities()
 {
+    #pragma omp parallel for
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
 
@@ -370,6 +376,7 @@ void Core::resetEntities()
 
 void Core::stopCurrentTones()
 {
+    #pragma omp parallel for
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
         midi_engine.stopNote(entity->current_tone, entity->patch);
@@ -473,8 +480,14 @@ void Core::toggleGenerationExport(bool export_current)
 
 void Core::toggleFastForward(bool ff)
 {
+    if (!ff && generation_counter > 1) displayScores();
     stopCurrentTones();
     fast_forward = ff;
+}
+
+void Core::setTransposition(int t)
+{
+    transposition_queue = t;
 }
 
 Gene* Core::initializeRandomGene(int index)
@@ -555,20 +568,21 @@ void Core::timerEvent(QTimerEvent *)
             //assembleCurrentTrack(); // a to sploh rabm
             evaluateEntities();
             mutateEntities();
-            displayScores();
+            if (!fast_forward) displayScores();
 
             if (export_current_generation)
-                midi_engine.exportTrack(entities, current_speed + 10, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation);
+                midi_engine.exportTrack(entities, current_speed + 10, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation, transposition);
 
             resetEntities();
             step_counter = 0;
             generation_counter++;
 
+            transposition = transposition_queue;
         }
         else if (generation_counter == number_of_generations && step_counter == steps_per_generation) {
             killTimer(timer_id);
             midi_engine.close();
-            midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation); // nared metodo k vrne ime fajla in passas ime
+            midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation, transposition); // nared metodo k vrne ime fajla in passas ime
         }
 
         FF_counter++;
