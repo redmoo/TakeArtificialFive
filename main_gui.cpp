@@ -24,13 +24,6 @@ MainGUI::~MainGUI()
 
 void MainGUI::on_startButton_clicked()
 {
-    core->updateFitnessCutoff(ui->fitnessSpinBox->value());
-    core->updateMutationFactor(ui->mutationSpinBox->value());
-    updateFitnessGUI();
-    core->toggleGenerationExport(ui->exportButton->isChecked());
-    core->toggleInitialPositionMutation(ui->positionCheckBox->isChecked());
-    core->toggleFastForward(ui->fastForwardButton->isChecked());
-
     /* seed, height, width, entities, genes, gene_string, generations, steps, speed */
     core->initialize(ui->seedSpinBox->value(),
                      ui->worldHeightSpinBox->value(),
@@ -41,6 +34,15 @@ void MainGUI::on_startButton_clicked()
                      ui->generationsSpinBox->value(),
                      ui->stepsSpinBox->value(),
                      ui->speedSpinBox->value());
+
+    core->updateFitnessCutoff(ui->fitnessSpinBox->value());
+    core->updateMutationFactor(ui->mutationSpinBox->value());
+    updateFitnessGUI();
+    core->toggleGenerationExport(ui->exportButton->isChecked());
+    core->toggleInitialPositionMutation(ui->positionCheckBox->isChecked());
+    core->toggleFastForward(ui->fastForwardButton->isChecked());
+
+    core->resumeSimulation();
 
     ui->worldHeightSpinBox->setEnabled(false);
     ui->worldWidthSpinBox->setEnabled(false);
@@ -56,7 +58,6 @@ void MainGUI::on_startButton_clicked()
 
     ui->speedSlider->setValue(ui->speedSpinBox->value());
     ui->speedSlider->setEnabled(true);
-
 }
 
 void MainGUI::on_pauseButton_toggled(bool checked)
@@ -255,4 +256,10 @@ void MainGUI::on_positionCheckBox_toggled(bool checked)
 void MainGUI::on_fastForwardButton_clicked(bool checked)
 {
     core->toggleFastForward(checked);
+}
+
+void MainGUI::on_transposeSlider_valueChanged(int value)
+{
+    ui->transposeSpinBox->setValue(value);
+    core->setTransposition(value);
 }

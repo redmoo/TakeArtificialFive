@@ -58,6 +58,8 @@ private slots:
 
     void on_rhythmicalBinaryCheckBox_clicked(bool checked);
 
+    void on_transposeSlider_valueChanged(int value);
+
 private:
     void updateFitnessGUI();
 
