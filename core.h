@@ -36,7 +36,7 @@ public:
                        double activity, double inactivity,
                        double tonality, double tonality_max, bool tonality_bin,
                        double rhythm, double rhythm_max, bool rhythm_bin);
-    void toggleGenerationExport(bool export_current);
+    void toggleGenerationExport(bool export_current, int loops);
     void toggleFastForward(bool ff);
     void setTransposition(int t);
 
@@ -50,8 +50,12 @@ private:
     void processNextStep();
     void evaluateEntities();
     void mutateEntities();
+    void entityCrossover();
+    void crossover(Entity *father, Entity *mother);
     void displayScores();
     void resetEntities();
+    void sortEntities();
+    void sortGenes(Entity *ent);
     void stopCurrentTones();
     void assembleCurrentTrack();
     bool geneStringValidation(QString g_string);
@@ -113,6 +117,7 @@ private:
     int timer_id;
 
     bool export_current_generation;
+    int export_loops;
 
 };
 

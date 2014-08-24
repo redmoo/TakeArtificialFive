@@ -294,7 +294,7 @@ void Core::mutateEntities()
     for (int e = 0; e < entities.size(); e++) {
         Entity *entity = entities.at(e);
 
-        if (entity->score < fitness_cutoff) {
+        if (entity->score < fitness_cutoff /*&& e > 1*/) {
             double mutation_rate = double(1 - entity->score) * mutation_factor;
 
             for (int g = 0; g < entity->genes.size(); g++) {
@@ -313,6 +313,61 @@ void Core::mutateEntities()
         }
     }
 
+}
+
+void Core::entityCrossover()
+{
+    sortEntities();
+    crossover(entities[1], entities[2]);
+}
+
+void Core::crossover(Entity *father, Entity *mother)
+{
+    // dodaj se tip crossoverja in point kjer se zgodi itd
+
+    // uniform crossover
+    for (int i = 0; i < number_of_genes; i++) {
+        if (RandomGenerator::get()->random01() > 0.5) {
+            Gene* temp_gene = father->genes[i];
+            father->genes[i] = mother->genes[i];
+            mother->genes[i] = temp_gene;
+        }
+    }
+}
+
+void Core::resetEntities()
+{
+    #pragma omp parallel for
+    for (int e = 0; e < entities.size(); e++) {
+        Entity *entity = entities.at(e);
+
+        midi_engine.stopNote(entity->current_tone, entity->patch);
+
+        entity->track.clear();
+        //entity->current_tone = midi_state::PAUSE; // ZIHR DODA NEKAJ ZANIMIVEGA CE NE CLEARAMO TEGA
+        entity->position = entity->initial_position;
+        entity->beat_counter = 0;
+        entity->mutation_rate = 0;
+        entity->state = entity_state::IDLE;
+
+        for (int g = 0; g < entity->genes.size(); g++) {
+            entity->genes.at(g)->resetGene();
+        }
+    }
+}
+
+void Core::sortEntities()
+{
+    std::sort(entities.begin(), entities.end(), [](Entity *e1, Entity *e2){
+        return  e1->score > e2->score;
+    });
+}
+
+void Core::sortGenes(Entity* ent)
+{
+    std::sort(ent->genes.begin(), ent->genes.end(), [](const Gene* g1, const Gene* g2) {
+        return g1->getPriority() > g2->getPriority();
+    });
 }
 
 void Core::displayScores()
@@ -351,27 +406,6 @@ void Core::displayScores()
 
     qDebug() << "";
     emit newConsoleMessage(QString("_________________________________________________________\n"));
-}
-
-void Core::resetEntities()
-{
-    #pragma omp parallel for
-    for (int e = 0; e < entities.size(); e++) {
-        Entity *entity = entities.at(e);
-
-        midi_engine.stopNote(entity->current_tone, entity->patch);
-
-        entity->track.clear();
-        //entity->current_tone = midi_state::PAUSE; // ZIHR DODA NEKAJ ZANIMIVEGA CE NE CLEARAMO TEGA
-        entity->position = entity->initial_position;
-        entity->beat_counter = 0;
-        entity->mutation_rate = 0;
-        entity->state = entity_state::IDLE;
-
-        for (int g = 0; g < entity->genes.size(); g++) {
-            entity->genes.at(g)->resetGene();
-        }
-    }
 }
 
 void Core::stopCurrentTones()
@@ -473,8 +507,9 @@ void Core::updateFitness(double consonance, double disonance,
     neutral_coeff = 1.0 - consonance_coeff - disonance_coeff - activity_coeff - inactivity_coeff - tone_coeff - rhythm_coeff;
 }
 
-void Core::toggleGenerationExport(bool export_current)
+void Core::toggleGenerationExport(bool export_current, int loops)
 {
+    export_loops = loops;
     export_current_generation = export_current;
 }
 
@@ -507,9 +542,7 @@ void Core::assignGenes(int amount, Entity *ent, QString g_string)
     for (int i = 0; i < amount; i++) {
         ent->genes.append(initializeRandomGene(g_string.length() > 0 ? g_string.at(i).digitValue() : -1));
     }
-    std::sort(ent->genes.begin(), ent->genes.end(), [](const Gene* g1, const Gene* g2) {
-        return g1->getPriority() > g2->getPriority();
-    });
+    sortGenes(ent);
 }
 
 QVector2D Core::generateInitialPosition()
@@ -568,10 +601,11 @@ void Core::timerEvent(QTimerEvent *)
             //assembleCurrentTrack(); // a to sploh rabm
             evaluateEntities();
             mutateEntities();
+            //entityCrossover(); // TEST
             if (!fast_forward) displayScores();
 
             if (export_current_generation)
-                midi_engine.exportTrack(entities, current_speed + 10, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation, transposition);
+                midi_engine.exportTrack(entities, current_speed + 10, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation, export_loops, transposition);
 
             resetEntities();
             step_counter = 0;
@@ -582,7 +616,7 @@ void Core::timerEvent(QTimerEvent *)
         else if (generation_counter == number_of_generations && step_counter == steps_per_generation) {
             killTimer(timer_id);
             midi_engine.close();
-            midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation, transposition); // nared metodo k vrne ime fajla in passas ime
+            midi_engine.exportTrack(entities, speed_ms, RandomGenerator::get()->getSeed(), generation_counter, world_height, world_width, steps_per_generation, export_loops, transposition); // nared metodo k vrne ime fajla in passas ime
         }
 
         FF_counter++;
