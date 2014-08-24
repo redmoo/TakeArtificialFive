@@ -466,7 +466,7 @@ background-color: rgb(0, 0, 0);</string>
      <rect>
       <x>10</x>
       <y>60</y>
-      <width>71</width>
+      <width>51</width>
       <height>31</height>
      </rect>
     </property>
@@ -1366,6 +1366,22 @@ background-color: rgb(0, 0, 0);</string>
     </property>
     <property name="maximum">
      <number>24</number>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="exportSpinBox">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>60</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="minimum">
+     <number>1</number>
     </property>
    </widget>
   </widget>

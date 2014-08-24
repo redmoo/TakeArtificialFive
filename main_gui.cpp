@@ -38,7 +38,7 @@ void MainGUI::on_startButton_clicked()
     core->updateFitnessCutoff(ui->fitnessSpinBox->value());
     core->updateMutationFactor(ui->mutationSpinBox->value());
     updateFitnessGUI();
-    core->toggleGenerationExport(ui->exportButton->isChecked());
+    core->toggleGenerationExport(ui->exportButton->isChecked(), ui->exportSpinBox->value());
     core->toggleInitialPositionMutation(ui->positionCheckBox->isChecked());
     core->toggleFastForward(ui->fastForwardButton->isChecked());
 
@@ -245,7 +245,8 @@ void MainGUI::updateFitnessGUI()
 
 void MainGUI::on_exportButton_toggled(bool checked)
 {
-    core->toggleGenerationExport(checked);
+    ui->exportSpinBox->setDisabled(checked);
+    core->toggleGenerationExport(checked, ui->exportSpinBox->value());
 }
 
 void MainGUI::on_positionCheckBox_toggled(bool checked)
