@@ -69,7 +69,7 @@ void MidiEngine::stopNote(int note, int patch)
     }
 }
 
-void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed, int generation, int height, int width, int steps, int transposition) // kok generacij pa ker seed je pa kok entitet
+void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed, int generation, int height, int width, int steps, int loops, int transposition) // kok generacij pa ker seed je pa kok entitet
 { // zgleda kokr da odseka zadno noto.. cudn
     MIDIfile file;
     file.AddLoopStart();
@@ -81,7 +81,7 @@ void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed, in
     int track_length = entities.at(0)->getTrack().length();
     QVector<int> keys_on(entities.size(), -1);
 
-    for (int loops = 0; loops < 1; loops++) {
+    for (int loop = 0; loop < loops; loop++) {
 
         for (int beat = 0; beat < track_length; beat++) {
 
@@ -103,7 +103,7 @@ void MidiEngine::exportTrack(QVector<Entity *> entities, int speed, int seed, in
             file[0].AddDelay(speed);
 
         }
-        if(loops == 0) file.AddLoopEnd();
+        if(loop == 0) file.AddLoopEnd();
     }
     file.Finish();
 
